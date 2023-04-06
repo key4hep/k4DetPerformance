@@ -31,5 +31,10 @@ rm Zmumu_91_10000ev_REC.root
 ## Analysis
 
 ```
+cd ../../FCCAnalyses
+
+```
+
+```
 fccanalysis run Zmumu/analysis_Zmumu.py  --test --nevents 10000 --output /eos/home-g/gasadows/Output/Zmumu/Analysis/Zmumu.root
 ```
