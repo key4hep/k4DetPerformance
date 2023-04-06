@@ -23,9 +23,6 @@ wget https://raw.githubusercontent.com/key4hep/k4MarlinWrapper/master/test/gaudi
 ```
 k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root  -n 10000
 
-mv my_outputREC.root Zmumu_91_10000ev_REC.root
-cp Zmumu_91_10000ev_REC.root /eos/home-g/gasadows/Output/Zmumu/REC/
-rm Zmumu_91_10000ev_REC.root
 ```
 
 ## Analysis
