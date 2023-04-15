@@ -16,9 +16,7 @@ ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --inputFi
 
 ## Reconstruction
 
-```
-wget https://raw.githubusercontent.com/key4hep/k4MarlinWrapper/master/test/gaudi_opts/fccRec_e4h_input.py
-```
+[fccRec_e4h_input.py](https://github.com/gaswk/FullSim/blob/main/fccRec_e4h_input.py)
 
 ```
 k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root  -n 10000
