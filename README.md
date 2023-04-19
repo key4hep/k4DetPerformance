@@ -27,7 +27,5 @@ k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmum
 Follow instructions here [FCCAnalyses](https://github.com/HEP-FCC/FCCAnalyses)
 
 ```
-
-```
 fccanalysis run Zmumu/analysis_Zmumu.py  --test --nevents 10000 --output /eos/home-g/gasadows/Output/Zmumu/Analysis/Zmumu.root
 ```
