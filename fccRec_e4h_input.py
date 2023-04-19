@@ -1283,7 +1283,7 @@ VertexFinderUnconstrained.Parameters = {
 
 # Write output to EDM4hep
 from Configurables import PodioOutput
-out = PodioOutput("PodioOutput", filename = "my_output.root")
+out = PodioOutput("PodioOutput", filename = "my_outputREC.root")
 out.outputCommands = ["keep *"]
 
 # ========== setup  ==========
