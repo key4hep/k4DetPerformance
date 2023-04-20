@@ -20,6 +20,9 @@ ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --inputFi
 ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --enableGun --gun.particle mu- --gun.energy 10*GeV --gun.distribution uniform --outputFile output_edm4hep.root --numberOfEvents 10
 ```
 
+> **Note**
+> simulation output file format must be **_edm4hep.root**
+
 ## Reconstruction
 
 fccRec_e4h_input.py file [here](https://github.com/gaswk/FullSim/blob/main/fccRec_e4h_input.py)
