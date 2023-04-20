@@ -35,7 +35,7 @@ k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmum
 ```
 
 ## Analysis
-Clone this fork of FCCAnalysis [FCCAnalyses](https://github.com/gaswk/FCCAnalyses) and follow instructions here:
+Clone this fork of [FCCAnalyses](https://github.com/gaswk/FCCAnalyses) and follow instructions here:
 
 ```
 git clone https://github.com/gaswk/FCCAnalyses.git
