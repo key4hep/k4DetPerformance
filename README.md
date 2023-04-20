@@ -35,7 +35,20 @@ k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmum
 ```
 
 ## Analysis
-Clone this fork of FCCAnalysis and follow instructions here [FCCAnalyses](https://github.com/gaswk/FCCAnalyses)
+Clone this fork of FCCAnalysis [FCCAnalyses](https://github.com/gaswk/FCCAnalyses) and follow instructions here:
+
+```
+git clone https://github.com/gaswk/FCCAnalyses.git
+
+cd FCCAnalyses
+
+source ./setup.sh
+mkdir build install
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=../install
+make install
+cd ..
+```
 
 analysis_Zmumu.py file [here](https://github.com/gaswk/FullSim/blob/main/analysis_Zmumu.py)
 
