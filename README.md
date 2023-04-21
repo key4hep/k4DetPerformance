@@ -11,23 +11,24 @@ cd CLICPerformance/fcceeConfig/
 ```
 
 ```
-ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --inputFiles /eos/home-g/gasadows/genFiles/ee_Zmumu_91.hepmc --numberOfEvents 10000 --steeringFile fcc_steer.py --outputFile /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root
+ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml \
+            --inputFiles /eos/home-g/gasadows/genFiles/ee_Zmumu_91.hepmc \
+            --numberOfEvents 10000 --steeringFile fcc_steer.py \
+            --outputFile /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root
 ```
 
 ### Simulation with ParticleGun
 
 ```
 ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml \
-            --outputFile TrackingPerformance/sim_output/SIM_e_10GeV_90deg_edm4hep.root \
+            --outputFile SIM_e_10GeV_90deg_edm4hep.root \
             --steeringFile fcc_steer.py \
-            --random.seed 0123456789 \
             --enableGun \
             --gun.particle e- \
             --gun.energy "10*GeV" \
             --gun.distribution uniform \
             --gun.thetaMin "90*deg" \
             --gun.thetaMax "90*deg" \
-            --crossingAngleBoost 0 \
             --numberOfEvents 10
 ```
 
@@ -41,7 +42,9 @@ ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml \
 fccRec_e4h_input.py file [here](https://github.com/gaswk/FullSim/blob/main/fccRec_e4h_input.py)
 
 ```
-k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root --filename.PodioOutput /eos/user/g/gasadows/Output/Zmumu/REC/Zmumu_91_10000ev_REC.root -n 10000
+k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root \
+            --filename.PodioOutput /eos/user/g/gasadows/Output/Zmumu/REC/Zmumu_91_10000ev_REC.root \
+            -n 10000
 
 ```
 
