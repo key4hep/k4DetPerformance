@@ -17,7 +17,7 @@ ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --inputFi
 ### Simulation with ParticleGun
 
 ```
-ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --enableGun --gun.particle mu- --gun.energy 10*GeV --gun.distribution uniform --outputFile output_edm4hep.root --numberOfEvents 10
+ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --steeringFile fcc_steer.py --enableGun --gun.particle mu- --gun.energy 10*GeV --gun.distribution uniform --outputFile output_edm4hep.root --numberOfEvents 10
 ```
 
 
