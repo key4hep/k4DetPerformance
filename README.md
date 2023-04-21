@@ -17,7 +17,18 @@ ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --inputFi
 ### Simulation with ParticleGun
 
 ```
-ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml --steeringFile fcc_steer.py --enableGun --gun.particle mu- --gun.energy 10*GeV --gun.distribution uniform --outputFile output_edm4hep.root --numberOfEvents 10
+ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml \
+            --outputFile TrackingPerformance/sim_output/SIM_e_10GeV_90deg_edm4hep.root \
+            --steeringFile fcc_steer.py \
+            --random.seed 0123456789 \
+            --enableGun \
+            --gun.particle e- \
+            --gun.energy "10*GeV" \
+            --gun.distribution uniform \
+            --gun.thetaMin "90*deg" \
+            --gun.thetaMax "90*deg" \
+            --crossingAngleBoost 0 \
+            --numberOfEvents 10
 ```
 
 
