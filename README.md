@@ -35,7 +35,7 @@ k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmum
 ```
 
 ## Analysis
-In a new session clone this fork of [FCCAnalyses](https://github.com/gaswk/FCCAnalyses) and follow instructions here:
+Clone this fork of [FCCAnalyses](https://github.com/gaswk/FCCAnalyses) and follow instructions here:
 
 ```
 git clone https://github.com/gaswk/FCCAnalyses.git
@@ -46,8 +46,7 @@ source ./setup.sh
 mkdir build install
 cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=../install
-make -j4
-make install
+make install -j4
 cd ..
 ```
 
