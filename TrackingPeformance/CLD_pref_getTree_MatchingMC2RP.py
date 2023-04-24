@@ -27,10 +27,6 @@ class RDFanalysis():
                .Define("indices_RP2MC",   "ReconstructedParticle2MC::getRP2MC_index_bycollID( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, ReconstructedParticles )")
                .Define("indices_MC2RP",   "ReconstructedParticle2MC::getMC2RP_index_bycollID( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, Particle )")
 
-              # remove pathological events
-               .Define("ind",        "return indices_MC2RP[ index_MCPart[0] ];")
-               .Filter(" ind >= 0 ")
-
               # the RP particle matched to the MC particle :
                .Define("RP_matched",  " return LooseSelectedPandoraPFOs.at( indices_MC2RP[ index_MCPart[0] ] ) ;" )
 
