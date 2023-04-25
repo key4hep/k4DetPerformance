@@ -18,13 +18,7 @@ class RDFanalysis():
                .Alias("mcreco0CollID",       "RecoMCTruthLink#0.collectionID")
                .Alias("mcreco1CollID",       "RecoMCTruthLink#1.collectionID")
 
-
-              # RP index in the LooseSelectedPandoraPFOs collection :
-               .Define("index_Reco",  "ReconstructedParticle::get_indices( ReconstructedParticles, ReconstructedParticles )")
-               
-              # indices for Reco - MC matching. Collection #56 = LooseSelectedPandoraPFOs,  collection #41 = EfficientMCParticles
-               .Define("indices_RP2MC",   "ReconstructedParticle2MC::getRP2MC_index_bycollID( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, ReconstructedParticles )")
-
+            
               # the MC particle matched to the reco'ed particle :
                .Define("MC_matched_to_reco",   "ReconstructedParticle2MC::getRP2MC_index_matched( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, ReconstructedParticles, Particle )")
 
