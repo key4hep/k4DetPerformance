@@ -18,25 +18,46 @@ class RDFanalysis():
                .Alias("mcreco0CollID",       "RecoMCTruthLink#0.collectionID")
                .Alias("mcreco1CollID",       "RecoMCTruthLink#1.collectionID")
 
-            
+
+             # RP2MC
               # the MC particle matched to the reco'ed particle :
-               .Define("MC_matched_to_reco",   "ReconstructedParticle2MC::getRP2MC_index_matched( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, ReconstructedParticles, Particle )")
+               .Define("MC_matched_to_reco",   "ReconstructedParticle2MC::getRP2MC_matched( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, ReconstructedParticles, Particle )")
 
               # Kinematics reco'ed
-               .Define("Reco_pdg",       "ReconstructedParticle::get_type(ReconstructedParticles)")
-               .Define("Reco_p",         "ReconstructedParticle::get_p(ReconstructedParticles)") 
-               .Define("Reco_pt",        "ReconstructedParticle::get_pt(ReconstructedParticles)") 
-               .Define("Reco_eta",       "ReconstructedParticle::get_eta(ReconstructedParticles)")
-               .Define("Reco_theta",     "ReconstructedParticle::get_theta_deg(ReconstructedParticles)")
-               .Define("Reco_phi",       "ReconstructedParticle::get_phi_deg(ReconstructedParticles)") 
+               .Define("Reco_pdg_RP2MC",       "ReconstructedParticle::get_type( ReconstructedParticles )")
+               .Define("Reco_pt_RP2MC",        "ReconstructedParticle::get_pt( ReconstructedParticles )") 
+               .Define("Reco_theta_RP2MC",     "ReconstructedParticle::get_theta_deg( ReconstructedParticles )")
+               .Define("Reco_phi_RP2MC",       "ReconstructedParticle::get_phi_deg( ReconstructedParticles )") 
+               .Define("Reco_e_RP2MC",         "ReconstructedParticle::get_e( ReconstructedParticles )") 
+               .Define("Reco_tlv_RP2MC",       "ReconstructedParticle::get_tlv( ReconstructedParticles )")
 
               # Kinematics MC
-               .Define("MC_pdg",         "MCParticle::get_pdg( MC_matched_to_reco )")
-               .Define("MC_p",           "MCParticle::get_p( MC_matched_to_reco )")
-               .Define("MC_pt",          "MCParticle::get_pt( MC_matched_to_reco )")
-               .Define("MC_eta",         "MCParticle::get_eta( MC_matched_to_reco )")
-               .Define("MC_theta",       "MCParticle::get_theta_deg( MC_matched_to_reco )")
-               .Define("MC_phi",         "MCParticle::get_phi_deg( MC_matched_to_reco )")
+               .Define("MC_pdg_RP2MC",         "MCParticle::get_pdg( MC_matched_to_reco )")
+               .Define("MC_pt_RP2MC",          "MCParticle::get_pt( MC_matched_to_reco )")
+               .Define("MC_theta_RP2MC",       "MCParticle::get_theta_deg( MC_matched_to_reco )")
+               .Define("MC_phi_RP2MC",         "MCParticle::get_phi_deg( MC_matched_to_reco )")
+               .Define("MC_e_RP2MC",           "MCParticle::get_e( MC_matched_to_reco )")
+               .Define("MC_tlv_RP2MC",         "MCParticle::get_tlv( MC_matched_to_reco )")
+
+             # MC2RP
+              # the MC particle matched to the reco'ed particle :
+               .Define("RP_matched_to_mc",   "ReconstructedParticle2MC::getMC2RP_matched( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, ReconstructedParticles, Particle )")
+
+              # Kinematics reco'ed
+               .Define("Reco_pdg_MC2RP",       "ReconstructedParticle::get_type( RP_matched_to_mc )")
+               .Define("Reco_pt_MC2RP",        "ReconstructedParticle::get_pt( RP_matched_to_mc )") 
+               .Define("Reco_theta_MC2RP",     "ReconstructedParticle::get_theta_deg( RP_matched_to_mc )")
+               .Define("Reco_phi_MC2RP",       "ReconstructedParticle::get_phi_deg( RP_matched_to_mc )") 
+               .Define("Reco_e_MC2RP",         "ReconstructedParticle::get_e( RP_matched_to_mc )") 
+               .Define("Reco_tlv_MC2RP",       "ReconstructedParticle::get_tlv( RP_matched_to_mc )") 
+
+              # Kinematics MC
+               .Define("MC_pdg_MC2RP",         "MCParticle::get_pdg( Particle )")
+               .Define("MC_pt_MC2RP",          "MCParticle::get_pt( Particle )")
+               .Define("MC_theta_MC2RP",       "MCParticle::get_theta_deg( Particle )")
+               .Define("MC_phi_MC2RP",         "MCParticle::get_phi_deg( Particle )")
+               .Define("MC_e_MC2RP",           "MCParticle::get_e( Particle )")
+               .Define("MC_tlv_MC2RP",         "MCParticle::get_tlv( Particle )")
 
         )
         return df2
@@ -47,18 +68,34 @@ class RDFanalysis():
     def output():
         branchList = [
     # ====== MC Particles
-        "MC_pdg",
-        "MC_p", 
-        "MC_pt",
-        "MC_theta", 
-        "MC_phi",
+        "MC_pdg_RP2MC", 
+        "MC_pt_RP2MC",
+        "MC_theta_RP2MC", 
+        "MC_phi_RP2MC",
+        "MC_e_RP2MC",
+        "MC_tlv_RP2MC",
+
+        "MC_pdg_MC2RP", 
+        "MC_pt_MC2RP",
+        "MC_theta_MC2RP", 
+        "MC_phi_MC2RP",
+        "MC_e_MC2RP",
+        "MC_tlv_MC2RP",
 
     # ====== Reconstructed Particles
-        "Reco_pdg",
-        "Reco_p", 
-        "Reco_pt",
-        "Reco_theta", 
-        "Reco_phi",  
+        "Reco_pdg_RP2MC",
+        "Reco_pt_RP2MC",
+        "Reco_theta_RP2MC", 
+        "Reco_phi_RP2MC",  
+        "Reco_e_RP2MC",
+        "Reco_tlv_RP2MC",  
+
+        "Reco_pdg_MC2RP",
+        "Reco_pt_MC2RP",
+        "Reco_theta_MC2RP", 
+        "Reco_phi_MC2RP",  
+        "Reco_e_MC2RP",
+        "Reco_tlv_MC2RP",
 
         ]
         return branchList
