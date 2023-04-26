@@ -1313,7 +1313,7 @@ algList.append(Refit)
 algList.append(MyDDCaloDigi[CONSTANTS["CalorimeterIntegrationTimeWindow"]])
 algList.append(MyDDSimpleMuonDigi)
 algList.append(MyDDMarlinPandora[CONSTANTS["CalorimeterIntegrationTimeWindow"]])
-###algList.append(LumiCalReco)                                
+algList.append(LumiCalReco)                                
 
 # ========== monitoring ==========
 algList.append(MyClicEfficiencyCalculator)
