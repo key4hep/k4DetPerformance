@@ -64,8 +64,8 @@ make install -j4
 cd ..
 ```
 
-analysis_Zmumu.py file [here](https://github.com/gaswk/FullSim/blob/main/analysis_Zmumu.py)
+analysis_Zmumu.py file [here](https://github.com/gaswk/FullSim/blob/main/analysis_examples/analysis_Zmumu.py)
 
 ```
-fccanalysis run Zmumu/analysis_Zmumu.py  --test --nevents 10000 --output /eos/home-g/gasadows/Output/Zmumu/Analysis/Zmumu.root
+fccanalysis run analysis_examples/analysis_Zmumu.py --output /eos/home-g/gasadows/Output/Zmumu/Analysis/Zmumu.root --files-list /eos/user/g/gasadows/Output/Zmumu/REC/Zmumu_91_10000ev_REC.root
 ```
