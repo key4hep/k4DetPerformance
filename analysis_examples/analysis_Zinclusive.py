@@ -40,7 +40,7 @@ class RDFanalysis():
                .Define("MC_tlv_RP2MC",         "MCParticle::get_tlv( MC_matched_to_reco )")
 
              # MC2RP
-              # the MC particle matched to the reco'ed particle :
+              # the reco particle matched to the MC particle :
                .Define("RP_matched_to_mc",   "ReconstructedParticle2MC::getMC2RP_matched( 56, 41 ) ( MCRecoAssociations0, MCRecoAssociations1, mcreco0CollID, mcreco1CollID, ReconstructedParticles, Particle )")
 
               # Kinematics reco'ed
