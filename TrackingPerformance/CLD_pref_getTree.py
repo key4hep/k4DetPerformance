@@ -1,5 +1,4 @@
 
-
 #Mandatory: RDFanalysis class where the use defines the operations on the TTreecode
 class RDFanalysis():
 
