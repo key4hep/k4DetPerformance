@@ -18,6 +18,7 @@ class RDFanalysis():
               # Kinematics reco'ed
                .Define("Reco_pdg",       "ReconstructedParticle::get_type( ReconstructedParticles )")
                .Define("Reco_pt",        "ReconstructedParticle::get_pt( ReconstructedParticles )") 
+               .Define("Reco_p",         "ReconstructedParticle::get_p( ReconstructedParticles )")
                .Define("Reco_theta",     "ReconstructedParticle::get_theta_deg( ReconstructedParticles )")
                .Define("Reco_phi",       "ReconstructedParticle::get_phi_deg( ReconstructedParticles )") 
                .Define("Reco_e",         "ReconstructedParticle::get_e( ReconstructedParticles )") 
@@ -27,6 +28,7 @@ class RDFanalysis():
               # Kinematics MC
                .Define("MC_pdg",         "MCParticle::get_pdg( Particle )")
                .Define("MC_pt",          "MCParticle::get_pt( Particle )")
+               .Define("MC_p",           "MCParticle::get_p( Particle )")
                .Define("MC_theta",       "MCParticle::get_theta_deg( Particle )")
                .Define("MC_phi",         "MCParticle::get_phi_deg( Particle )")
                .Define("MC_e",           "MCParticle::get_e( Particle )")
@@ -40,6 +42,7 @@ class RDFanalysis():
               # Kinematics MC 
                .Define("Reco_MC_pdg",         "MCParticle::get_pdg( MC_matched_to_reco )")
                .Define("Reco_MC_pt",          "MCParticle::get_pt( MC_matched_to_reco )")
+               .Define("Reco_MC_p",           "MCParticle::get_p( MC_matched_to_reco )")
                .Define("Reco_MC_theta",       "MCParticle::get_theta_deg( MC_matched_to_reco )")
                .Define("Reco_MC_phi",         "MCParticle::get_phi_deg( MC_matched_to_reco )")
                .Define("Reco_MC_e",           "MCParticle::get_e( MC_matched_to_reco )")
@@ -53,6 +56,7 @@ class RDFanalysis():
               # Kinematics reco'ed
                .Define("MC_Reco_pdg",       "ReconstructedParticle::get_type( RP_matched_to_mc )")
                .Define("MC_Reco_pt",        "ReconstructedParticle::get_pt( RP_matched_to_mc )") 
+               .Define("MC_Reco_p",         "ReconstructedParticle::get_p( RP_matched_to_mc )")
                .Define("MC_Reco_theta",     "ReconstructedParticle::get_theta_deg( RP_matched_to_mc )")
                .Define("MC_Reco_phi",       "ReconstructedParticle::get_phi_deg( RP_matched_to_mc )") 
                .Define("MC_Reco_e",         "ReconstructedParticle::get_e( RP_matched_to_mc )") 
@@ -70,6 +74,7 @@ class RDFanalysis():
     # ====== MC Particles
         "MC_pdg", 
         "MC_pt",
+        "MC_p",
         "MC_theta", 
         "MC_phi",
         "MC_e",
@@ -78,6 +83,7 @@ class RDFanalysis():
 
         "Reco_MC_pdg", 
         "Reco_MC_pt",
+        "Reco_MC_p",
         "Reco_MC_theta", 
         "Reco_MC_phi",
         "Reco_MC_e", 
@@ -87,6 +93,7 @@ class RDFanalysis():
     # ====== Reconstructed Particles
         "Reco_pdg",
         "Reco_pt",
+        "Reco_p",
         "Reco_theta", 
         "Reco_phi",  
         "Reco_e",
@@ -95,6 +102,7 @@ class RDFanalysis():
 
         "MC_Reco_pdg",
         "MC_Reco_pt",
+        "MC_Reco_p",
         "MC_Reco_theta", 
         "MC_Reco_phi",  
         "MC_Reco_e",

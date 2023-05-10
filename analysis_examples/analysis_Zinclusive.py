@@ -24,6 +24,7 @@ class RDFanalysis():
                .Define("Reco_theta",     "ReconstructedParticle::get_theta_deg( ReconstructedParticles )")
                .Define("Reco_phi",       "ReconstructedParticle::get_phi_deg( ReconstructedParticles )") 
                .Define("Reco_e",         "ReconstructedParticle::get_e( ReconstructedParticles )") 
+               .Define("Reco_mass",      "ReconstructedParticle::get_mass( ReconstructedParticles )")
                .Define("Reco_tlv",       "ReconstructedParticle::get_tlv( ReconstructedParticles )")
 
               # Kinematics MC
@@ -32,6 +33,7 @@ class RDFanalysis():
                .Define("MC_theta",       "MCParticle::get_theta_deg( Particle )")
                .Define("MC_phi",         "MCParticle::get_phi_deg( Particle )")
                .Define("MC_e",           "MCParticle::get_e( Particle )")
+               .Define("MC_mass",        "MCParticle::get_mass( Particle )")
                .Define("MC_tlv",         "MCParticle::get_tlv( Particle )")
 
              # RP2MC
@@ -44,6 +46,7 @@ class RDFanalysis():
                .Define("Reco_MC_theta",       "MCParticle::get_theta_deg( MC_matched_to_reco )")
                .Define("Reco_MC_phi",         "MCParticle::get_phi_deg( MC_matched_to_reco )")
                .Define("Reco_MC_e",           "MCParticle::get_e( MC_matched_to_reco )")
+               .Define("Reco_MC_mass",        "MCParticle::get_mass( MC_matched_to_reco )")
                .Define("Reco_MC_tlv",         "MCParticle::get_tlv( MC_matched_to_reco )")
 
              # MC2RP
@@ -56,6 +59,7 @@ class RDFanalysis():
                .Define("MC_Reco_theta",     "ReconstructedParticle::get_theta_deg( RP_matched_to_mc )")
                .Define("MC_Reco_phi",       "ReconstructedParticle::get_phi_deg( RP_matched_to_mc )") 
                .Define("MC_Reco_e",         "ReconstructedParticle::get_e( RP_matched_to_mc )") 
+               .Define("MC_Reco_mass",      "ReconstructedParticle::get_mass( RP_matched_to_mc )")
                .Define("MC_Reco_tlv",       "ReconstructedParticle::get_tlv( RP_matched_to_mc )") 
 
         )
@@ -72,13 +76,15 @@ class RDFanalysis():
         "MC_theta", 
         "MC_phi",
         "MC_e",
+        "MC_mass",
         "MC_tlv",
 
         "Reco_MC_pdg", 
         "Reco_MC_pt",
         "Reco_MC_theta", 
         "Reco_MC_phi",
-        "Reco_MC_e",
+        "Reco_MC_e", 
+        "Reco_MC_mass",
         "Reco_MC_tlv",
 
     # ====== Reconstructed Particles
@@ -87,6 +93,7 @@ class RDFanalysis():
         "Reco_theta", 
         "Reco_phi",  
         "Reco_e",
+        "Reco_mass",
         "Reco_tlv",  
 
         "MC_Reco_pdg",
@@ -94,7 +101,10 @@ class RDFanalysis():
         "MC_Reco_theta", 
         "MC_Reco_phi",  
         "MC_Reco_e",
+        "MC_Reco_mass",
         "MC_Reco_tlv",
 
         ]
         return branchList
+
+
