@@ -1,3 +1,20 @@
+### Simulation
 ```
-fccanalysis run FullSim/TrackingPerformance/CLD_pref_getTree.py --output FullSim/TrackingPerformance/test.root --files-list /eos/user/g/gasadows/Output/TrackingPerformance/REC/REC_mu_10GeV_90deg_edm4hep.root
+. ./FullSim/TrackingPerformance/Simulation.sh
 ```
+
+### Reconstruction
+```
+. ./FullSim/TrackingPerformance/Reconstruction.sh
+```
+
+### Analysis
+```
+. ./FullSim/TrackingPerformance/Analysis.sh
+```
+
+### Plotting
+```
+python FullSim/rackingPerformance/Plots/testCLDprefPlot.py
+```
+Very strange distributions of DeltaPt_Pt2 which gives a strange plot...

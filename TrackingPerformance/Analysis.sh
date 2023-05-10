@@ -16,6 +16,6 @@ for Particle in $ParticleList; do
         --output /eos/user/g/gasadows/Output/TrackingPerformance/Analysis/test/$Particle-$theta-deg_$momentum-GeV_1000evt.root \
         --files-list /eos/user/g/gasadows/Output/TrackingPerformance/REC/REC_$Particle-$theta-deg_$momentum-GeV_1000evt_edm4hep.root  \
             #> /dev/null
-            done    ##loop over theta
+        done    ##loop over theta
     done    ##loop over momentum
 done  ##loop over particle

@@ -1,5 +1,6 @@
 #! /usr/bin/bash
 
+cd CLICPerformance/fcceeConfig/
 
 # Define a string variable with a value
 ParticleList="mu"  ##"mu e pi"
