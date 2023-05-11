@@ -2,7 +2,7 @@
 
 # Define a string variable with a value
 ParticleList="mu"  ##"mu e pi"
-MomentumList="0.5 1 2 5 10 20 50 100 200"
+MomentumList="1 2 5 10 20 50 100 200"
 ThetaList="10 30 50 70 89"
 
 # Iterate the string variable using for loop
