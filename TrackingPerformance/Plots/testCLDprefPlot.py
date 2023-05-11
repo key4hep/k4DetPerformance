@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from statistics import mean # importing mean()
 from scipy.optimize import curve_fit  # importing curve_fit
 from scipy.stats import norm
+from scipy.stats import linregress
 
 # Get the current working directory
 cwd = os.getcwd()
@@ -42,11 +43,11 @@ for file_name in filelist:
     MC_p_list = []  # Create empty list for MC_p values
     for i in range(tree.GetEntries()):
         tree.GetEntry(i)
-        reco_tlv = tree.Reco_tlv
-        MC_tlv = tree.Reco_MC_tlv # MC particle matched to the reco'ed particle
-        MC_PDG = tree.Reco_MC_pdg
-        for j in range(len(reco_tlv)):
-            if (MC_PDG != 0) and (MC_tlv[j].Pt() != 0) and (MC_tlv[j].Theta() != 0) :
+        MC_tlv = tree.MC_tlv
+        reco_tlv = tree.MC_Reco_tlv # Reco'ed particle matched to the MC particle
+        reco_PDG = tree.MC_Reco_pdg
+        for j in range(len(MC_tlv)):
+            if (reco_PDG != 0) and (reco_tlv[j].Pt() != 0) and (reco_tlv[j].Theta() != 0) :
                 reco_pt = reco_tlv[j].Pt()
                 MC_theta = MC_tlv[j].Theta()
                 MC_theta_list.append(MC_theta)  # Append each MC_theta value to the list
@@ -55,7 +56,24 @@ for file_name in filelist:
                 MC_pt = MC_tlv[j].Pt()
         DeltaPt_Pt2.append( (reco_pt - MC_pt) / (MC_pt * MC_pt) )
 
-    sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2)
+##### In the absence of more statistics ....
+    # Define threshold value for number of standard deviations from the mean
+    threshold = 2
+    DeltaPt_Pt2_sel = DeltaPt_Pt2  # initialise with original data
+    num_selections = 3
+
+    for i in range(num_selections):
+        mean_DeltaPt_Pt2_sel = np.mean(DeltaPt_Pt2_sel)
+        std_DeltaPt_Pt2_sel = np.std(DeltaPt_Pt2_sel)
+        DeltaPt_Pt2_sel_new = []
+        for dpt in DeltaPt_Pt2_sel:
+            if abs(dpt - mean_DeltaPt_Pt2_sel) < threshold * std_DeltaPt_Pt2_sel:
+                DeltaPt_Pt2_sel_new.append(dpt)
+        DeltaPt_Pt2_sel = DeltaPt_Pt2_sel_new
+
+    sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2_sel)
+#####
+    #sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2)
 
     # Calculate mean values of theta and momentum
     theta = int(np.mean(np.round(np.rad2deg(MC_theta_list))))  # Calculate mean of reco_theta_list
@@ -100,6 +118,11 @@ import matplotlib.lines as mlines
 fig, ax = plt.subplots() 
 ax.set_xscale('log')
 ax.set_yscale('log')
+# Add graduations on top and right sides of the plot
+ax.xaxis.set_ticks_position('both')
+ax.yaxis.set_ticks_position('both')
+ax.tick_params(axis='x', which='both', direction='in')
+ax.tick_params(axis='y', which='both', direction='in')
 #ax.set_title(r'single $\mu^-$', fontsize=14)
 ax.set_xlabel(r'$p$ [GeV] ', fontsize=12)
 ax.set_ylabel(r'$\sigma(\Delta p_T / p^2_{T,true})$ $[GeV^{-1}] $', fontsize=12)
@@ -120,16 +143,14 @@ for t, data_list in sorted(data_dict.items()):
     scatter = ax.scatter(x, y, s=30, linewidth=0)
     handles.append(scatter)
     labels.append(r'$\theta$ = '+str(t)+' deg')
-    
+
     ## fit by theta
-    p = np.array(x)
-    theta_rad = np.deg2rad(t)
-    func = lambda p, a, b:a + (b / (p * np.power(np.sin(theta_rad), 3/2))) 
-    popt, pcov = curve_fit(func, p, y)
-    a, b = popt
-    fit_x = np.linspace(min(p), max(p), 10)
-    fit_y = func(fit_x, a, b)
-    ax.plot(fit_x, fit_y, '--', linewidth=0.5)
+    # Fit the data using linear regression
+    a, b, r_value, p_value, std_err = linregress(np.log(x), np.log(y))
+    # Plot the fitted line on top of the data
+    xfit = np.linspace(min(x), max(x), 100)
+    yfit = np.exp(b) * xfit**a
+    plt.loglog(xfit, yfit,'--', linewidth=0.5)
 
 legend_line = mlines.Line2D([], [], color='black', linestyle='--', linewidth=0.5)
 handles.append(legend_line)
