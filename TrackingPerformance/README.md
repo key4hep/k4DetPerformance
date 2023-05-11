@@ -17,4 +17,3 @@
 ```
 python FullSim/rackingPerformance/Plots/testCLDprefPlot.py
 ```
-Very strange distributions of DeltaPt_Pt2 which gives a strange plot...
