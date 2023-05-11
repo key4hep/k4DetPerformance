@@ -1,4 +1,6 @@
-Instruction to reproduce this [plot](https://github.com/gaswk/FullSim/blob/main/TrackingPerformance/plots/TEST.png)
+Instruction to reproduce this plot:
+
+![TEST](https://github.com/gaswk/FullSim/assets/116810451/b96e29b2-cdb6-4aa3-a203-2a82ee0bd30d)
 
 ### Setup
 ```
