@@ -56,13 +56,13 @@ for file_name in filelist:
                 MC_pt = MC_tlv[j].Pt()
         DeltaPt_Pt2.append( (reco_pt - MC_pt) / (MC_pt * MC_pt) )
 
-##### In the absence of more statistics ....
+##### Remove Very badly reconstructed particles
     # Define threshold value for number of standard deviations from the mean
     threshold = 2
     DeltaPt_Pt2_sel = DeltaPt_Pt2  # initialise with original data
-    num_selections = 3
+    n_selections = 3
 
-    for i in range(num_selections):
+    for i in range(n_selections):
         mean_DeltaPt_Pt2_sel = np.mean(DeltaPt_Pt2_sel)
         std_DeltaPt_Pt2_sel = np.std(DeltaPt_Pt2_sel)
         DeltaPt_Pt2_sel_new = []
