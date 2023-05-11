@@ -1,3 +1,12 @@
+Instruction to reproduce these [plots](https://github.com/gaswk/FullSim/tree/main/TrackingPerformance/plots)
+
+### Setup
+```
+source /cvmfs/sw.hsf.org/key4hep/setup.sh
+
+git clone https://github.com/iLCSoft/CLICPerformance.git
+```
+
 ### Simulation
 ```
 . ./FullSim/TrackingPerformance/Simulation.sh
@@ -9,11 +18,27 @@
 ```
 
 ### Analysis
+Clone this fork of [FCCAnalyses](https://github.com/gaswk/FCCAnalyses) and follow instructions here:
+
+```
+git clone https://github.com/gaswk/FCCAnalyses.git
+
+cd FCCAnalyses
+
+source ./setup.sh
+mkdir build install
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=../install
+make install -j4
+cd ..
+```
+
+Then run the following script:
 ```
 . ./FullSim/TrackingPerformance/Analysis.sh
 ```
 
 ### Plotting
 ```
-python FullSim/rackingPerformance/Plots/testCLDprefPlot.py
+python FullSim/TrackingPerformance/CLDprefPlot.py
 ```
