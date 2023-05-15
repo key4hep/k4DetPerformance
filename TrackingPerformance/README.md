@@ -11,12 +11,13 @@ git clone https://github.com/iLCSoft/CLICPerformance.git
 
 ### Simulation
 ```
-. ./FullSim/TrackingPerformance/Simulation.sh
+python ./FullSim/TrackingPerformance/Simulation.py
 ```
+Simulation of single particle with fixed energy and theta, steps for 10, 30, 50, 70 and 89 deg in theta and 1, 2, 5, 10, 20, 50, 100, 200 GeV in energy.
 
 ### Reconstruction
 ```
-. ./FullSim/TrackingPerformance/Reconstruction.sh
+python ./FullSim/TrackingPerformance/Reconstruction.py
 ```
 
 ### Analysis
@@ -37,7 +38,7 @@ cd ..
 
 Then run the following script:
 ```
-. ./FullSim/TrackingPerformance/Analysis.sh
+python ./FullSim/TrackingPerformance/Analysis.py
 ```
 
 ### Plotting
