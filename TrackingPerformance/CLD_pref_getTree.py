@@ -10,11 +10,22 @@ class RDFanalysis():
                .Alias("ReconstructedParticles", "LooseSelectedPandoraPFOs")
                .Alias("Particle",               "EfficientMCParticles")
 
-               .Alias("MCRecoAssociations0", "RecoMCTruthLink#0.index")  #recind
-               .Alias("MCRecoAssociations1", "RecoMCTruthLink#1.index")  #mcind
-               .Alias("mcreco0CollID",       "RecoMCTruthLink#0.collectionID")
-               .Alias("mcreco1CollID",       "RecoMCTruthLink#1.collectionID")
+               .Alias("MCRecoAssociations0",    "RecoMCTruthLink#0.index")  #recind
+               .Alias("MCRecoAssociations1",    "RecoMCTruthLink#1.index")  #mcind
+               .Alias("mcreco0CollID",          "RecoMCTruthLink#0.collectionID")
+               .Alias("mcreco1CollID",          "RecoMCTruthLink#1.collectionID")
 
+               .Alias("MCTrackAssociations0",   "SiTracksMCTruthLink#0.index")  #trkind
+               .Alias("MCTrackAssociations1",   "SiTracksMCTruthLink#1.index")  #mcind
+               .Alias("mctrk0CollID",           "SiTracksMCTruthLink#0.collectionID")
+               .Alias("mctrk1CollID",           "SiTracksMCTruthLink#1.collectionID")
+
+              # TrackStates at IP
+               .Define("EFlowTrack_1",      "ReconstructedParticle2Track::TrackStates_at_IP( SiTracks_Refitted, SiTracks_Refitted_1 )")
+            # MC2Track
+              # the TrackState matched to the MC particle :
+               .Define("Track_matched_to_MC",   "ReconstructedParticle2Track::getMC2Track_matched( 36, 41 ) ( MCTrackAssociations0, MCTrackAssociations1, mctrk0CollID, mctrk1CollID, EFlowTrack_1, Particle )")
+               
               # Kinematics reco'ed
                .Define("Reco_pdg",       "ReconstructedParticle::get_type( ReconstructedParticles )")
                .Define("Reco_pt",        "ReconstructedParticle::get_pt( ReconstructedParticles )") 
@@ -108,6 +119,10 @@ class RDFanalysis():
         "MC_Reco_e",
         "MC_Reco_mass",
         "MC_Reco_tlv",
+
+    # test tracks
+        "EFlowTrack_1",
+        "Track_matched_to_MC",
 
         ]
         return branchList
