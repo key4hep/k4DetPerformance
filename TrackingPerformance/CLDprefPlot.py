@@ -90,7 +90,7 @@ for ftype in ['mu', 'e', 'pi']:
         sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2_sel)
 
     #####
-        sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2)        # Do the plot without selection
+        #sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2)        # Do the plot without selection
 
     ##### Calculate Efficiency
         # Create the histograms
