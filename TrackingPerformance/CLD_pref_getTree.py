@@ -20,12 +20,14 @@ class RDFanalysis():
                .Alias("mctrk0CollID",           "SiTracksMCTruthLink#0.collectionID")
                .Alias("mctrk1CollID",           "SiTracksMCTruthLink#1.collectionID")
 
+             # MC2Track
               # TrackStates at IP
                .Define("EFlowTrack_1",      "ReconstructedParticle2Track::TrackStates_at_IP( SiTracks_Refitted, SiTracks_Refitted_1 )")
-            # MC2Track
               # the TrackState matched to the MC particle :
                .Define("Track_matched_to_MC",   "ReconstructedParticle2Track::getMC2Track_matched( 36, 41 ) ( MCTrackAssociations0, MCTrackAssociations1, mctrk0CollID, mctrk1CollID, EFlowTrack_1, Particle )")
-               
+              # pT of the track matched to the MC particle :
+               .Define("Track_pt",   "ReconstructedParticle2Track::getMC2Track_pT( 36, 41 ) ( MCTrackAssociations0, MCTrackAssociations1, mctrk0CollID, mctrk1CollID, EFlowTrack_1, Particle )")            
+ 
               # Kinematics reco'ed
                .Define("Reco_pdg",       "ReconstructedParticle::get_type( ReconstructedParticles )")
                .Define("Reco_pt",        "ReconstructedParticle::get_pt( ReconstructedParticles )") 
@@ -120,10 +122,8 @@ class RDFanalysis():
         "MC_Reco_mass",
         "MC_Reco_tlv",
 
-    # test tracks
-        "EFlowTrack_1",
-        "Track_matched_to_MC",
-
+    # ====== tracks
+        "Track_pt",
         ]
         return branchList
 
