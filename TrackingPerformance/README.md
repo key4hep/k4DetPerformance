@@ -1,6 +1,6 @@
 Instruction to reproduce this plot:
 
-![momentum_resolution_mu](https://github.com/gaswk/FullSim/assets/116810451/a3029300-0857-45fb-bcb5-6478d8f341d7)
+![momentum_resolution_mu](https://github.com/gaswk/FullSim/assets/116810451/eff6661b-a007-4de1-99ef-13203f9ef964)
 
 ### Setup
 ```
@@ -13,9 +13,10 @@ git clone https://github.com/iLCSoft/CLICPerformance.git
 ```
 python ./FullSim/TrackingPerformance/Simulation.py
 ```
-Simulation of single particle with fixed energy and theta, steps for 10, 30, 50, 70 and 89 deg in theta and 1, 2, 5, 10, 20, 50, 100, 200 GeV in energy.
+Simulation of single particle (e-, pi-, mu-) with fixed energy and theta, steps for 10, 30, 50, 70 and 89 deg in theta and 1, 2, 5, 10, 20, 50, 100, 200 GeV in energy.
 
 ### Reconstruction
+fccRec_e4h_input.py file [here](https://github.com/gaswk/FullSim/blob/main/fccRec_e4h_input.py)
 ```
 python ./FullSim/TrackingPerformance/Reconstruction.py
 ```
@@ -43,5 +44,5 @@ python ./FullSim/TrackingPerformance/Analysis.py
 
 ### Plotting
 ```
-python FullSim/TrackingPerformance/CLDprefPlot.py
+python FullSim/TrackingPerformance/CLDprefPlot_track.py
 ```
