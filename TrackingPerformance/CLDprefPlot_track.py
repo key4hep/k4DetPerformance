@@ -94,36 +94,32 @@ for ftype in ['mu', 'e', 'pi']:
         ############################### Plot the distributions of DeltaPt_Pt2 and DeltaPt_Pt2_sel for each files
         fig, ax = plt.subplots()  # create a new figure and axis object
         file_name = os.path.basename(str(file_name))  # Extract the filename only from the full path
-        # Plot the histogram for distribution of DeltaPt_Pt2
-        n, bins, patches = plt.hist(DeltaPt_Pt2, bins=len(DeltaPt_Pt2), histtype='step', label='DeltaPt_Pt2')
-        # Fit a normal distribution to the data
-        mu, std = norm.fit(DeltaPt_Pt2)
-        fit_line = scipy.stats.norm.pdf(bins, mu, std) * sum(n * np.diff(bins))
-        # Plot the fitted line
-        plt.plot(bins, fit_line,'r', linewidth=1, label=(r"$\sigma=%0.3e$") % (std))
         #------
         # Plot the histogram distribution of DeltaPt_Pt2_sel
         n, bins, patches = plt.hist(DeltaPt_Pt2_sel, bins=(len(DeltaPt_Pt2_sel)//10), histtype='step', label='DeltaPt_Pt2_sel')
         if ftype != 'e':       
             # Fit a normal distribution to the data
             mu, std = norm.fit(DeltaPt_Pt2_sel)
-            fit_line = scipy.stats.norm.pdf(bins, mu, std) * sum(n * np.diff(bins))
+            fit_line = scipy.stats.norm.pdf(bins[:-1], mu, std) * sum(n * np.diff(bins))
+            # Calculate chi-square for normal distribution fit
+            chi2 = np.sum(((n - fit_line)**2 / fit_line))
             # Plot the fitted line
-            plt.plot(bins, fit_line,'g', linewidth=1.5, label=(r"$\sigma=%0.3e$") % (std))
+            plt.plot(bins[:-1], fit_line,'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (std, chi2)))
             sigma_DeltaPt_Pt2 = std
         else:
             # Fit a Crystal Ball distribution for electrons
             params = scipy.stats.crystalball.fit(DeltaPt_Pt2_sel)
-            fit_line = scipy.stats.crystalball.pdf(bins, *params) * sum(n * np.diff(bins))  
-            # Extract mu and sigma from the fitted parameters
+            fit_line = scipy.stats.crystalball.pdf(bins[:-1], *params) * sum(n * np.diff(bins)) 
             sigma = params[-1]
+            # Calculate chi-square for normal distribution fit
+            chi2 = np.sum(((n - fit_line)**2 / fit_line))
             # Plot the fitted line
-            plt.plot(bins, fit_line, 'g', linewidth=1.5, label=(r"$\sigma=%0.3e$") % (sigma))
+            plt.plot(bins[:-1], fit_line, 'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (sigma, chi2)))
             sigma_DeltaPt_Pt2 = sigma
         #------
         plt.xlabel(r'$\Delta p_T / p^2_{T,true}$', fontsize=12)
         plt.title(f'Distribution of $\Delta p_T / p^2_{{T,true}}$ for {file_name}')
-        plt.legend()
+        plt.legend() 
         plt.savefig(os.path.join(sub_dir_path, f'{file_name}.png'))
         #figure_path = os.path.join(cwd, f'{file_name}.png')
         plt.close(fig)  # close the figure to free up memory
@@ -138,13 +134,13 @@ for ftype in ['mu', 'e', 'pi']:
         MC_pt_hist = ROOT.TH1F("MC_pt_hist", "MC pT Distribution", Nbins, min_pt, max_pt)   # Nbins, min, max)
        # Fill the histograms
         for MC_pt, dpt in zip( MC_pt_list, DeltaPt_Pt2):
-            if dpt in DeltaPt_Pt2_sel:
+            if dpt in DeltaPt_Pt2:
                 MC_matched_pt_hist.Fill(MC_pt)
         for pt in MC_pt_all_list:
             MC_pt_hist.Fill(pt)
        # Divide the histograms
         divided_hist = ROOT.TH1F("divided_hist", "Divided Histogram", Nbins, min_pt, max_pt) # Nbins, min, max)
-        divided_hist.Divide(MC_matched_pt_hist, MC_pt_hist, 1, 1, "b") # weight Hist1, weight Hist2, b = binomial error# Print the bin contents and errors       
+        divided_hist.Divide(MC_matched_pt_hist, MC_pt_hist, 1, 1, "b") # weight Hist1, weight Hist2, b = binomial error     
         #divided_hist.Print("all") # Print the bin contents and errors
        # Get the calculated point and error from the divided histogram
         for bin in range(1, divided_hist.GetNbinsX() + 1):
