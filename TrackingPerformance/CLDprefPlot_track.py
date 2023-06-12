@@ -6,14 +6,14 @@ import scipy as scipy
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 from statistics import mean # importing mean()
-from scipy.stats import norm
+from scipy.stats import norm, crystalball
 from scipy.stats import linregress
 
 # Get the current working directory
 cwd = os.getcwd()
 
 # Define the directory where the plots will be saved
-output_dir = 'plots_tracks'
+output_dir = 'plots_track'
 sub_dir = 'DeltaPt_Pt2_Distributions'
 sub_dir2 = 'Hist_pT_Distributions'
 # Create the directory if it does not exist
@@ -34,7 +34,7 @@ for ftype in ['mu', 'e', 'pi']:
         os.mkdir(sub_dir2_path)
 
     # List of ROOT files
-    filelist = glob.glob('/eos/user/g/gasadows/Output/TrackingPerformance/Analysis/'+f'{ftype}'+'*.root')
+    filelist = glob.glob('/eos/user/g/gasadows/Output/TrackingPerformance/FCCee_o2_v02/Analysis/'+f'{ftype}'+'*.root')
 
     sigma_DeltaPt_Pt2_list = []
     theta_list = []
@@ -42,7 +42,7 @@ for ftype in ['mu', 'e', 'pi']:
     transverse_momentum_list = []
     efficiency_list = []
     # Create empty lists to store the calculated points and errors
-    points_list = []
+    eff_list = []
     errors_list = []
 
     for file_name in filelist:
@@ -55,7 +55,8 @@ for ftype in ['mu', 'e', 'pi']:
         DeltaPt_Pt2 = []
         MC_theta_list = []  # Create empty list for MC_theta values
         MC_p_list = []  # Create empty list for MC_p values
-        MC_pt_list = []  # Create empty list for MC_pt values
+        MC_pt_list = []  # Create empty list for MC_pt mathed to reco values
+        MC_pt_all_list = []  # Create empty list for all MC_pt values
         trk_pt_list = []  # Create empty list for Trk_pt values
         for i in range(tree.GetEntries()):
             tree.GetEntry(i)
@@ -63,7 +64,9 @@ for ftype in ['mu', 'e', 'pi']:
             trk_pT = tree.Track_pt # Track particle matched to the MC particle
             reco_PDG = tree.MC_Reco_pdg
             for j in range(len(MC_tlv)):
-                if (trk_pT != 0) or (trk_pT != -9) :
+                MC_pt_all = MC_tlv[j].Pt()
+                MC_pt_all_list.append(MC_pt_all)  # Append each MC_pt value to the list
+                if (trk_pT != 0) or (trk_pT != -9) :  # Matched particles only
                     trk_pt = trk_pT[j]
                     MC_theta = MC_tlv[j].Theta()
                     MC_theta_list.append(MC_theta)  # Append each MC_theta value to the list
@@ -74,11 +77,10 @@ for ftype in ['mu', 'e', 'pi']:
                     trk_pt_list.append(trk_pt)  # Append each trk_pt value to the list
             DeltaPt_Pt2.append( (trk_pt - MC_pt) / (MC_pt * MC_pt) )# Divide the histograms with the TH1::Divide function        
 
-    ##### Remove badly reconstructed tracks
+    #### Remove badly reconstructed tracks
         threshold = 2         # Define threshold value for number of standard deviations from the mean
         DeltaPt_Pt2_sel = DeltaPt_Pt2  # Initialise with original data
         n_selections = 3        # Number of selection
-
         for i in range(n_selections):
             mean_DeltaPt_Pt2_sel = np.mean(DeltaPt_Pt2_sel)
             std_DeltaPt_Pt2_sel = np.std(DeltaPt_Pt2_sel)
@@ -87,42 +89,108 @@ for ftype in ['mu', 'e', 'pi']:
                 if abs(dpt - mean_DeltaPt_Pt2_sel) < threshold * std_DeltaPt_Pt2_sel:
                     DeltaPt_Pt2_sel_new.append(dpt)
             DeltaPt_Pt2_sel = DeltaPt_Pt2_sel_new
-        sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2_sel)
-
     #####
-        sigma_DeltaPt_Pt2 = np.std(DeltaPt_Pt2)        # Do resolution plot without selection
 
-    ##### Calculate Efficiency
-        # Create the histograms
-        min_pt = min(min(trk_pt_list), min(MC_pt_list))    # Calculate the common axis limits for both histograms
-        max_pt = max(max(trk_pt_list), max(MC_pt_list))    # Calculate the common axis limits for both histograms
-        Nbins = 50    # Calculate the  number of bins for both histograms
-        trk_pt_hist = ROOT.TH1F("trk_pt_hist", "Reco pT Distribution", Nbins, min_pt, max_pt) # Nbins, min, max)
-        MC_pt_hist = ROOT.TH1F("MC_pt_hist", "MC pT Distribution", Nbins, min_pt, max_pt)   # Nbins, min, max)
-        # Fill the histograms
-        for trk_pt, MC_pt, dpt in zip(trk_pt_list, MC_pt_list, DeltaPt_Pt2):
-            if dpt in DeltaPt_Pt2_sel:
-                trk_pt_hist.Fill(trk_pt)
-                MC_pt_hist.Fill(MC_pt)
-        # Divide the histograms
-        divided_hist = ROOT.TH1F("divided_hist", "Divided Histogram", Nbins, min_pt, max_pt) # Nbins, min, max)
-        divided_hist.Divide(trk_pt_hist, MC_pt_hist, 1, 1, "b") # weight Hist1, weight Hist2, b = binomial error)
-        # Get the calculated point and error from the divided histogram
-        point = divided_hist.GetBinContent(1)
-        error = divided_hist.GetBinError(1)
-        # Append the point and error to the lists
-        points_list.append(point)
-        errors_list.append(error)
-        # Plot the histograms
+        ############################### Plot the distributions of DeltaPt_Pt2 and DeltaPt_Pt2_sel for each files
         fig, ax = plt.subplots()  # create a new figure and axis object
         file_name = os.path.basename(str(file_name))  # Extract the filename only from the full path
-        plt.hist(trk_pt_list, bins=Nbins, range=(min_pt, max_pt), label='Track pT Distribution', alpha=0.5)
-        plt.hist(MC_pt_list, bins=Nbins, range=(min_pt, max_pt), label='MC pT Distribution', alpha=0.5)
-        plt.xlabel('pT')
+        # Plot the histogram for distribution of DeltaPt_Pt2
+        n, bins, patches = plt.hist(DeltaPt_Pt2, bins=len(DeltaPt_Pt2), histtype='step', label='DeltaPt_Pt2')
+        # Fit a normal distribution to the data
+        mu, std = norm.fit(DeltaPt_Pt2)
+        fit_line = scipy.stats.norm.pdf(bins, mu, std) * sum(n * np.diff(bins))
+        # Plot the fitted line
+        plt.plot(bins, fit_line,'r', linewidth=1, label=(r"$\sigma=%0.3e$") % (std))
+        #------
+        # Plot the histogram distribution of DeltaPt_Pt2_sel
+        n, bins, patches = plt.hist(DeltaPt_Pt2_sel, bins=(len(DeltaPt_Pt2_sel)//10), histtype='step', label='DeltaPt_Pt2_sel')
+        if ftype != 'e':       
+            # Fit a normal distribution to the data
+            mu, std = norm.fit(DeltaPt_Pt2_sel)
+            fit_line = scipy.stats.norm.pdf(bins, mu, std) * sum(n * np.diff(bins))
+            # Plot the fitted line
+            plt.plot(bins, fit_line,'g', linewidth=1.5, label=(r"$\sigma=%0.3e$") % (std))
+            sigma_DeltaPt_Pt2 = std
+        else:
+            # Fit a Crystal Ball distribution for electrons
+            params = scipy.stats.crystalball.fit(DeltaPt_Pt2_sel)
+            fit_line = scipy.stats.crystalball.pdf(bins, *params) * sum(n * np.diff(bins))  
+            # Extract mu and sigma from the fitted parameters
+            sigma = params[-1]
+            # Plot the fitted line
+            plt.plot(bins, fit_line, 'g', linewidth=1.5, label=(r"$\sigma=%0.3e$") % (sigma))
+            sigma_DeltaPt_Pt2 = sigma
+        #------
+        plt.xlabel(r'$\Delta p_T / p^2_{T,true}$', fontsize=12)
+        plt.title(f'Distribution of $\Delta p_T / p^2_{{T,true}}$ for {file_name}')
         plt.legend()
-        # Save the plot
-        plt.savefig(os.path.join(sub_dir2_path, f'{file_name}.png'))
+        plt.savefig(os.path.join(sub_dir_path, f'{file_name}.png'))
+        #figure_path = os.path.join(cwd, f'{file_name}.png')
         plt.close(fig)  # close the figure to free up memory
+        ################################
+
+    ##### Calculate Efficiency
+       # Create the histograms
+        min_pt = min(min(MC_pt_all_list), min(MC_pt_list))    # Calculate the common axis limits for both histograms
+        max_pt = max(max(MC_pt_all_list), max(MC_pt_list))    # Calculate the common axis limits for both histograms
+        Nbins = 1    # Calculate the  number of bins for both histograms
+        MC_matched_pt_hist = ROOT.TH1F("MC_matched_pt_hist", "MC matched pT Distribution", Nbins, min_pt, max_pt) # Nbins, min, max)
+        MC_pt_hist = ROOT.TH1F("MC_pt_hist", "MC pT Distribution", Nbins, min_pt, max_pt)   # Nbins, min, max)
+       # Fill the histograms
+        for MC_pt, dpt in zip( MC_pt_list, DeltaPt_Pt2):
+            if dpt in DeltaPt_Pt2_sel:
+                MC_matched_pt_hist.Fill(MC_pt)
+        for pt in MC_pt_all_list:
+            MC_pt_hist.Fill(pt)
+       # Divide the histograms
+        divided_hist = ROOT.TH1F("divided_hist", "Divided Histogram", Nbins, min_pt, max_pt) # Nbins, min, max)
+        divided_hist.Divide(MC_matched_pt_hist, MC_pt_hist, 1, 1, "b") # weight Hist1, weight Hist2, b = binomial error# Print the bin contents and errors       
+        #divided_hist.Print("all") # Print the bin contents and errors
+       # Get the calculated point and error from the divided histogram
+        for bin in range(1, divided_hist.GetNbinsX() + 1):
+            bin_content = divided_hist.GetBinContent(bin)
+            bin_error = divided_hist.GetBinError(bin)
+            if bin_content != 0:
+                eff_list.append(bin_content)
+                errors_list.append(bin_error)
+       # Plot the histograms
+        ROOT.gROOT.SetBatch(True)   # Disable interactive mode
+        file_name = os.path.basename(str(file_name))  # Extract the filename only from the full path
+       # Create canvas
+        canvas = ROOT.TCanvas("canvas", "Histograms", 800, 600)
+        canvas.Divide(2, 1) # Divide the canvas into 2 pads
+        canvas . cd (1) ##
+       # Draw MC_matched_pt_hist
+        MC_matched_pt_hist.SetTitle("pT Distribution")
+        MC_matched_pt_hist.GetXaxis().SetTitle("pT (GeV)")
+        MC_matched_pt_hist.Draw()
+        MC_matched_pt_hist.SetLineColor(ROOT.kBlue)
+        MC_matched_pt_hist.SetLineWidth(2)
+       # Draw MC_pt_hist on the same canvas
+        MC_pt_hist.Draw("same")
+        MC_pt_hist.SetLineColor(ROOT.kRed)
+        MC_pt_hist.SetLineWidth(2)
+        MC_pt_hist.SetLineStyle(9)
+       # Set legend
+        legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)  # Adjust the legend position as needed
+        legend.SetTextSize(0.03)  # Adjust the text size
+        legend.AddEntry(MC_matched_pt_hist, "MC matched pT Distribution", "l")
+        legend.AddEntry(MC_pt_hist, "MC pT Distribution", "l")
+        legend.Draw()
+        canvas . cd (2) ##
+       # Draw the divided_hist
+        divided_hist.GetXaxis().SetTitle("pT (GeV)")
+        divided_hist.Draw()
+       # Set properties
+        divided_hist.SetLineColor(ROOT.kGreen)
+        divided_hist.SetLineWidth(2)
+       # Set title and axis labels
+        divided_hist.SetTitle("Divided Histogram")
+       # Save canvas as image file
+        canvas.SaveAs(os.path.join(sub_dir2_path, f'{file_name}_pT.png'))
+        ROOT.gROOT.SetBatch(False)  # Enable ineractive mode again
+       # Clean up resources
+        canvas.Close()
     ##### 
 
         # Calculate mean values of theta and momentum
@@ -138,33 +206,6 @@ for ftype in ['mu', 'e', 'pi']:
 
         # Close the ROOT file
         file.Close()
-        
-        ############################### Plot the distributions of DeltaPt_Pt2 and DeltaPt_Pt2_sel for each files
-        fig, ax = plt.subplots()  # create a new figure and axis object
-        file_name = os.path.basename(str(file_name))  # Extract the filename only from the full path
-        # Plot the histogram for distribution of DeltaPt_Pt2
-        n, bins, patches = plt.hist(DeltaPt_Pt2, bins=len(DeltaPt_Pt2), histtype='step', label='DeltaPt_Pt2')
-        # Fit a normal distribution to the data
-        mu, std = norm.fit(DeltaPt_Pt2)
-        fit_line = scipy.stats.norm.pdf(bins, mu, std) * sum(n * np.diff(bins))
-        # Plot the fitted line
-        plt.plot(bins, fit_line,'r', linewidth=1, label=(r"$\mu=%0.3e$" + "\n" + r"$\sigma=%0.3e$") % (mu, std))
-        #------
-        # Plot the histogram distribution of DeltaPt_Pt2_sel
-        n, bins, patches = plt.hist(DeltaPt_Pt2_sel, bins=(len(DeltaPt_Pt2_sel)//10), histtype='step', label='DeltaPt_Pt2_sel')
-        # Fit a normal distribution to the data
-        mu, std = norm.fit(DeltaPt_Pt2_sel)
-        fit_line = scipy.stats.norm.pdf(bins, mu, std) * sum(n * np.diff(bins))
-        # Plot the fitted line
-        plt.plot(bins, fit_line,'g', linewidth=1.5, label=(r"$\mu=%0.3e$" + "\n" + r"$\sigma=%0.3e$") % (mu, std))
-        #------
-        plt.xlabel(r'$\Delta p_T / p^2_{T,true}$', fontsize=12)
-        plt.title(f'Distribution of $\Delta p_T / p^2_{{T,true}}$ for {file_name}')
-        plt.legend()
-        plt.savefig(os.path.join(sub_dir_path, f'{file_name}.png'))
-        #figure_path = os.path.join(cwd, f'{file_name}.png')
-        plt.close(fig)  # close the figure to free up memory
-        ###############################
 
     # Rename the lists
     theta = theta_list
@@ -177,7 +218,7 @@ for ftype in ['mu', 'e', 'pi']:
     for i in range(len(theta)):
         if theta[i] not in data_dict:
             data_dict[theta[i]] = []
-        data_dict[theta[i]].append((momentum[i], transverse_momentum[i],sigma_DeltaPt_Pt2[i], points_list[i], errors_list[i]))
+        data_dict[theta[i]].append((momentum[i], transverse_momentum[i],sigma_DeltaPt_Pt2[i], eff_list[i], errors_list[i]))
 
     ############################### Momentum resolution PLOT ###############################
     ## Delta_pT/pT^2 vs p
@@ -263,7 +304,7 @@ for ftype in ['mu', 'e', 'pi']:
         title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
     else:
         title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.1, title=title, title_fontsize='larger')
+    leg = plt.legend(handles,labels, loc='lower right', labelspacing=-0.1, title=title, title_fontsize='larger')
     leg._legend_box.align = "left" # Make title align on the left
 
     # add text in the upper left corner
@@ -278,4 +319,4 @@ for ftype in ['mu', 'e', 'pi']:
     #----------------------------------
 
     ## show plots
-    plt.show() 
+    #plt.show() 
