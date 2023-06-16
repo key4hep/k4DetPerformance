@@ -6,7 +6,7 @@ import scipy as scipy
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 from statistics import mean # importing mean()
-from scipy.stats import norm, crystalball
+from scipy.stats import norm, crystalball, chisquare
 from scipy.stats import linregress
 
 # Get the current working directory
@@ -78,7 +78,7 @@ for ftype in ['mu', 'e', 'pi']:
             DeltaPt_Pt2.append( (trk_pt - MC_pt) / (MC_pt * MC_pt) )# Divide the histograms with the TH1::Divide function        
 
     #### Remove badly reconstructed tracks
-        threshold = 2         # Define threshold value for number of standard deviations from the mean
+        threshold = 3         # Define threshold value for number of standard deviations from the mean
         DeltaPt_Pt2_sel = DeltaPt_Pt2  # Initialise with original data
         n_selections = 3        # Number of selection
         for i in range(n_selections):
@@ -102,7 +102,7 @@ for ftype in ['mu', 'e', 'pi']:
             mu, std = norm.fit(DeltaPt_Pt2_sel)
             fit_line = scipy.stats.norm.pdf(bins[:-1], mu, std) * sum(n * np.diff(bins))
             # Calculate chi-square for normal distribution fit
-            chi2 = np.sum(((n - fit_line)**2 / fit_line))
+            chi2, p_value = scipy.stats.chisquare(n / np.sum(n), f_exp=fit_line / np.sum(fit_line))
             # Plot the fitted line
             plt.plot(bins[:-1], fit_line,'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (std, chi2)))
             sigma_DeltaPt_Pt2 = std
@@ -112,7 +112,8 @@ for ftype in ['mu', 'e', 'pi']:
             fit_line = scipy.stats.crystalball.pdf(bins[:-1], *params) * sum(n * np.diff(bins)) 
             sigma = params[-1]
             # Calculate chi-square for normal distribution fit
-            chi2 = np.sum(((n - fit_line)**2 / fit_line))
+            fit_line2 = scipy.stats.crystalball.pdf(bins[:-1], *params) * sum(n * np.diff(bins)) / np.sum(fit_line)
+            chi2, p_value = scipy.stats.chisquare(n / np.sum(n), f_exp=fit_line / np.sum(fit_line))
             # Plot the fitted line
             plt.plot(bins[:-1], fit_line, 'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (sigma, chi2)))
             sigma_DeltaPt_Pt2 = sigma
