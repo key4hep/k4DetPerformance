@@ -61,7 +61,7 @@ for ftype in ['mu', 'e', 'pi']:
         for i in range(tree.GetEntries()):
             tree.GetEntry(i)
             MC_tlv = tree.MC_tlv
-            trk_pT = tree.Track_pt # Track particle matched to the MC particle
+            trk_pT = tree.Track_pt # Reconstructed track matched to the MC particle
             reco_PDG = tree.MC_Reco_pdg
             for j in range(len(MC_tlv)):
                 MC_pt_all = MC_tlv[j].Pt()
@@ -75,7 +75,7 @@ for ftype in ['mu', 'e', 'pi']:
                     MC_pt = MC_tlv[j].Pt()
                     MC_pt_list.append(MC_pt)  # Append each MC_pt value to the list
                     trk_pt_list.append(trk_pt)  # Append each trk_pt value to the list
-            DeltaPt_Pt2.append( (trk_pt - MC_pt) / (MC_pt * MC_pt) )# Divide the histograms with the TH1::Divide function        
+            DeltaPt_Pt2.append( (trk_pt - MC_pt) / (MC_pt * MC_pt) )       
 
     #### Remove badly reconstructed tracks
         threshold = 3         # Define threshold value for number of standard deviations from the mean
@@ -130,7 +130,7 @@ for ftype in ['mu', 'e', 'pi']:
        # Create the histograms
         min_pt = min(min(MC_pt_all_list), min(MC_pt_list))    # Calculate the common axis limits for both histograms
         max_pt = max(max(MC_pt_all_list), max(MC_pt_list))    # Calculate the common axis limits for both histograms
-        Nbins = 1    # Calculate the  number of bins for both histograms
+        Nbins = 10    # Calculate the  number of bins for both histograms
         MC_matched_pt_hist = ROOT.TH1F("MC_matched_pt_hist", "MC matched pT Distribution", Nbins, min_pt, max_pt) # Nbins, min, max)
         MC_pt_hist = ROOT.TH1F("MC_pt_hist", "MC pT Distribution", Nbins, min_pt, max_pt)   # Nbins, min, max)
        # Fill the histograms
@@ -217,6 +217,13 @@ for ftype in ['mu', 'e', 'pi']:
             data_dict[theta[i]] = []
         data_dict[theta[i]].append((momentum[i], transverse_momentum[i],sigma_DeltaPt_Pt2[i], eff_list[i], errors_list[i]))
 
+    # Create a dict by momentum
+    data_dict_p = {}
+    for i in range(len(momentum)):
+        if momentum[i] not in data_dict_p:
+            data_dict_p[momentum[i]] = []
+        data_dict_p[momentum[i]].append((theta[i], transverse_momentum[i],sigma_DeltaPt_Pt2[i], eff_list[i], errors_list[i]))
+
     ############################### Momentum resolution PLOT ###############################
     ## Delta_pT/pT^2 vs p
     #----------------------------------
@@ -235,19 +242,20 @@ for ftype in ['mu', 'e', 'pi']:
     labels = []
 
     for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
-        ## plot the points by theta
-        p, pt, s, points, errors = zip(*data_list)
-        scatter = ax.scatter(p, s, s=30, linewidth=0, marker=markers[idx % len(markers)])
-        handles.append(scatter)
-        labels.append(r'$\theta$ = '+str(t)+' deg')
+        if t in [10, 30, 50, 70, 89]:
+            ## plot the points by theta
+            p, pt, s, points, errors = zip(*data_list)
+            scatter = ax.scatter(p, s, s=30, linewidth=0, marker=markers[idx % len(markers)])
+            handles.append(scatter)
+            labels.append(r'$\theta$ = '+str(t)+' deg')
 
-        ## fit by theta
-        # Fit the data using linear regression
-        a, b, r_value, p_value, std_err = linregress(np.log(p), np.log(s))
-        # Plot the fitted line on top of the data
-        xfit = np.linspace(min(p), max(p), 100)
-        yfit = np.exp(b) * xfit**a
-        plt.loglog(xfit, yfit,'--', linewidth=0.5)
+            ## fit by theta
+            # Fit the data using linear regression
+            a, b, r_value, p_value, std_err = linregress(np.log(p), np.log(s))
+            # Plot the fitted line on top of the data
+            xfit = np.linspace(min(p), max(p), 100)
+            yfit = np.exp(b) * xfit**a
+            plt.loglog(xfit, yfit,'--', linewidth=0.5)
 
     legend_line = mlines.Line2D([], [], color='black', linestyle='--', linewidth=0.5)
     handles.append(legend_line)
@@ -270,6 +278,48 @@ for ftype in ['mu', 'e', 'pi']:
 
     ## Save the plot to a file
     plt.savefig(os.path.join(output_dir,'momentum_resolution_'+f'{ftype}'+'.png'))
+    #----------------------------------
+
+    ## Delta_pT/pT^2 vs theta
+    #----------------------------------
+    fig, ax = plt.subplots() 
+    ax.set_yscale('log')
+    # Add graduations on top and right sides of the plot
+    ax.xaxis.set_ticks_position('both')
+    ax.yaxis.set_ticks_position('both')
+    ax.tick_params(axis='x', which='both', direction='in')
+    ax.tick_params(axis='y', which='both', direction='in')
+    ax.set_xlabel(r'$\theta$ [deg] ', fontsize=12)
+    ax.set_ylabel(r'$\sigma(\Delta p_T / p^2_{T,true})$ $[GeV^{-1}] $', fontsize=12)
+    markers = ['o', 's', 's', '^']
+    handles = []
+    labels = []
+
+    for idx, (p, data_list_p) in enumerate(sorted(data_dict_p.items())):
+        if p in [1, 10, 100]:
+            ## plot the points by momentum
+            theta, pt, s, points, errors = zip(*data_list_p)
+            scatter = ax.scatter(theta, s, s=30, linewidth=0, marker=markers[idx % len(markers)])
+            handles.append(scatter)
+            labels.append(r'$p$ = '+str(p)+' GeV')
+
+    # Customise title depending on ftype 
+    if ftype == 'mu' or ftype == 'pi':
+        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+    else:
+        title = r'Single $e^-$'
+    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
+    leg._legend_box.align = "left" # Make title align on the left
+
+    # add text in the upper left corner
+    text_str = "FCC−ee CLD"
+    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+    # add text in the upper right corner
+    text_str = "~1000 events/point"
+    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+
+    ## Save the plot to a file
+    plt.savefig(os.path.join(output_dir,'momentum_resolution_theta_'+f'{ftype}'+'.png'))
     #----------------------------------
 
     ############################### Efficiency PLOT ###############################
