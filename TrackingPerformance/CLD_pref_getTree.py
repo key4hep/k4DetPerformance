@@ -27,7 +27,11 @@ class RDFanalysis():
                .Define("Track_matched_to_MC",   "ReconstructedParticle2Track::getMC2Track_matched( 36, 41 ) ( MCTrackAssociations0, MCTrackAssociations1, mctrk0CollID, mctrk1CollID, EFlowTrack_1, Particle )")
               # pT of the track matched to the MC particle :
                .Define("Track_pt",   "ReconstructedParticle2Track::getMC2Track_pT( 36, 41 ) ( MCTrackAssociations0, MCTrackAssociations1, mctrk0CollID, mctrk1CollID, EFlowTrack_1, Particle )")            
- 
+              # d0
+               .Define("d0",     "ReconstructedParticle2Track::getRP2TRK_D0( ReconstructedParticles, Track_matched_to_MC )")
+              # z0
+               .Define("z0",  "ReconstructedParticle2Track::getRP2TRK_Z0( ReconstructedParticles, Track_matched_to_MC )")
+
               # Kinematics reco'ed
                .Define("Reco_pdg",       "ReconstructedParticle::get_type( ReconstructedParticles )")
                .Define("Reco_pt",        "ReconstructedParticle::get_pt( ReconstructedParticles )") 
@@ -123,7 +127,7 @@ class RDFanalysis():
         "MC_Reco_tlv",
 
     # ====== tracks
-        "Track_pt",
+        "Track_pt","d0","z0",
         ]
         return branchList
 
