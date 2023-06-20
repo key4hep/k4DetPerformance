@@ -1,6 +1,3 @@
-Instruction to reproduce this plot:
-
-![momentum_resolution_mu](https://github.com/gaswk/FullSim/assets/116810451/eff6661b-a007-4de1-99ef-13203f9ef964)
 
 ### Setup
 ```
