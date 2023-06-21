@@ -18,7 +18,7 @@ Nevts = '1000'
 
 # Define the directory where the plots will be saved
 output_dir = f'plots_{DetectorModel}'
-sub_dirs = ['DeltaPt_Pt2_Distributions', 'Hist_pT_Distributions', 'd0_Distribution']
+sub_dirs = ['DeltaPt_Pt2_Distributions', 'Hist_pT_Distributions', 'd0_Distributions', 'z0_Distributions']
 
 # Create the directory if it does not exist
 if not os.path.exists(output_dir):
@@ -43,6 +43,10 @@ for ftype in ['mu', 'e', 'pi']:
     transverse_momentum_list = []
     efficiency_list = []
     d0_std_list = []
+    z0_std_list = []
+    std_values_DeltaPt_Pt2 = []
+    std_values_Delta_d0 = []
+    std_values_Delta_z0 = []
     # Create empty lists to store the calculated points and errors
     eff_list = []
     errors_list = []
@@ -55,18 +59,21 @@ for ftype in ['mu', 'e', 'pi']:
         # Create list sigma_DeltaPt_Pt2 containing the sigma value of the distribution DeltaPt_Pt2
         sigma_DeltaPt_Pt2 = []
         DeltaPt_Pt2 = []
-        Delta_d0 = []
+        #Delta_d0 = []
+        #Delta_z0 = []
         MC_theta_list = []  # Create empty list for MC_theta values
         MC_p_list = []  # Create empty list for MC_p values
         MC_pt_list = []  # Create empty list for MC_pt mathed to reco values
         MC_pt_all_list = []  # Create empty list for all MC_pt values
         trk_pt_list = []  # Create empty list for Trk_pt values
         d0_list = []  # Create empty list for d0 values
+        z0_list = []  # Create empty list for z0 values
         for i in range(tree.GetEntries()):
             tree.GetEntry(i)
-            MC_tlv = tree.MC_tlv
+            MC_tlv = tree.MC_tlv   # MC particles
             trk_pT = tree.Track_pt # Reconstructed track matched to the MC particle
             trk_d0 = tree.d0
+            trk_z0 = tree.z0
             reco_PDG = tree.MC_Reco_pdg
             for j in range(len(MC_tlv)):
                 MC_pt_all = MC_tlv[j].Pt()
@@ -76,6 +83,8 @@ for ftype in ['mu', 'e', 'pi']:
                     trk_pt_list.append(trk_pt)  # Append each trk_pt value to the list
                     d0 = trk_d0[j]
                     d0_list.append(d0)  # Append each d0 value to the list
+                    z0 = trk_z0[j]
+                    z0_list.append(z0)  # Append each z0 value to the list
                     MC_theta = MC_tlv[j].Theta()
                     MC_theta_list.append(MC_theta)  # Append each MC_theta value to the list
                     MC_p = MC_tlv[j].P()
@@ -84,93 +93,97 @@ for ftype in ['mu', 'e', 'pi']:
                     MC_pt_list.append(MC_pt)  # Append each MC_pt value to the list                 
             DeltaPt_Pt2.append( (trk_pt - MC_pt) / (MC_pt * MC_pt) )       
 
-    #### Remove badly reconstructed tracks
-       # Delta pT / pT^2
-        threshold = 3         # Define threshold value for number of standard deviations from the mean
-        DeltaPt_Pt2_sel = DeltaPt_Pt2  # Initialise with original data
-        n_selections = 3        # Number of selection
-        for i in range(n_selections):            
-            mean_DeltaPt_Pt2_sel = np.mean(DeltaPt_Pt2_sel)
-            std_DeltaPt_Pt2_sel = np.std(DeltaPt_Pt2_sel)
-            DeltaPt_Pt2_sel_new = []
-            for dpt in DeltaPt_Pt2_sel:
-                if abs(dpt - mean_DeltaPt_Pt2_sel) < threshold * std_DeltaPt_Pt2_sel:
-                    DeltaPt_Pt2_sel_new.append(dpt)
-            DeltaPt_Pt2_sel = DeltaPt_Pt2_sel_new
-       # Delta d0
-        threshold = 2         # Define threshold value for number of standard deviations from the mean
-        Delta_d0_sel = d0_list  # Initialise with original data
-        n_selections = 4        # Number of selection
-        for i in range(n_selections):
-            mean_Delta_d0_sel = np.mean(Delta_d0_sel)
-            std_Delta_d0_sel = np.std(Delta_d0_sel)
-            Delta_d0__sel_new = []
-            for dpt in Delta_d0_sel:
-                if abs(dpt - mean_Delta_d0_sel) < threshold * std_Delta_d0_sel:
-                    Delta_d0__sel_new.append(dpt)
-            Delta_d0_sel = Delta_d0__sel_new
-    #####
+      #### Remove badly reconstructed tracks
+        def filter_data(data, threshold, n_selections):
+                filtered_data = data
+                for _ in range(n_selections):
+                    mean = np.mean(filtered_data)
+                    std = np.std(filtered_data)
+                    filtered_data = [d for d in filtered_data if abs(d - mean) < threshold * std]
+                return filtered_data
 
-        ############################### Plot the distributions of DeltaPt_Pt2 and DeltaPt_Pt2_sel for each files
-        fig, ax = plt.subplots()  # create a new figure and axis object
-        file_name = os.path.basename(str(file_name))  # Extract the filename only from the full path
-        #------
-        # Plot the histogram distribution of DeltaPt_Pt2_sel
-        n, bins, patches = plt.hist(DeltaPt_Pt2_sel, bins=(len(DeltaPt_Pt2_sel)//10), histtype='step', label='DeltaPt_Pt2_sel')
-        if ftype != 'e':       
+       # DeltaPt_Pt2
+        DeltaPt_Pt2_sel = filter_data(DeltaPt_Pt2, 3, 3)    # data, threshold, n_selections
+
+       # Delta_d0
+        Delta_d0_sel = filter_data(d0_list, 2, 3)    # data, threshold, n_selections
+
+       # Delta_z0
+        Delta_z0_sel = filter_data(z0_list, 3, 3)    # data, threshold, n_selections
+      #####
+
+        ############################### Plot the distributions of DeltaPt_Pt2 and DeltaPt_Pt2_sel for each file
+        def plot_distribution_DeltaPt_Pt2(data, bins, xlabel, title, output_path, ftype, file_name):
+            fig, ax = plt.subplots()
+            # Plot the histogram distribution
+            n, bins, patches = plt.hist(data, bins=bins, histtype='step', label='Data')
+            if ftype != 'e':
+                # Fit a normal distribution to the data
+                mu, std = norm.fit(data)
+                fit_line = scipy.stats.norm.pdf(bins[:-1], mu, std) * sum(n * np.diff(bins))
+                # Calculate chi-square for normal distribution fit
+                chi2, p_value = scipy.stats.chisquare(n / np.sum(n), f_exp=fit_line / np.sum(fit_line))
+                # Plot the fitted line
+                plt.plot(bins[:-1], fit_line, 'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (std, chi2)))
+                data_std = std
+            else:
+                # Fit a Crystal Ball distribution for electrons
+                params = scipy.stats.crystalball.fit(data)
+                fit_line = scipy.stats.crystalball.pdf(bins[:-1], *params) * sum(n * np.diff(bins))
+                sigma = params[-1]
+                # Calculate chi-square for normal distribution fit
+                fit_line2 = scipy.stats.crystalball.pdf(bins[:-1], *params) * sum(n * np.diff(bins)) / np.sum(fit_line)
+                chi2, p_value = scipy.stats.chisquare(n / np.sum(n), f_exp=fit_line / np.sum(fit_line))
+                # Plot the fitted line
+                plt.plot(bins[:-1], fit_line, 'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (sigma, chi2)))
+                data_std = sigma
+
+            plt.xlabel(xlabel, fontsize=12)
+            plt.title(title)
+            plt.legend()
+            plt.savefig(os.path.join(output_path, f'{file_name}.png'))
+            plt.close(fig)
+
+            return data_std
+
+        ############################### Plot the distribution of Delta d0/z0 for each file
+        def plot_distribution_Delta_d0_z0(data, bins, xlabel, title, output_path, file_name):
+            fig, ax = plt.subplots()
+            # Plot the histogram distribution
+            n, bins, patches = plt.hist(data, bins=bins, histtype='step', label='Data')
             # Fit a normal distribution to the data
-            mu, std = norm.fit(DeltaPt_Pt2_sel)
+            mu, std = norm.fit(data)
             fit_line = scipy.stats.norm.pdf(bins[:-1], mu, std) * sum(n * np.diff(bins))
             # Calculate chi-square for normal distribution fit
             chi2, p_value = scipy.stats.chisquare(n / np.sum(n), f_exp=fit_line / np.sum(fit_line))
             # Plot the fitted line
-            plt.plot(bins[:-1], fit_line,'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (std, chi2)))
-            sigma_DeltaPt_Pt2 = std
-        else:
-            # Fit a Crystal Ball distribution for electrons
-            params = scipy.stats.crystalball.fit(DeltaPt_Pt2_sel)
-            fit_line = scipy.stats.crystalball.pdf(bins[:-1], *params) * sum(n * np.diff(bins)) 
-            sigma = params[-1]
-            # Calculate chi-square for normal distribution fit
-            fit_line2 = scipy.stats.crystalball.pdf(bins[:-1], *params) * sum(n * np.diff(bins)) / np.sum(fit_line)
-            chi2, p_value = scipy.stats.chisquare(n / np.sum(n), f_exp=fit_line / np.sum(fit_line))
-            # Plot the fitted line
-            plt.plot(bins[:-1], fit_line, 'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (sigma, chi2)))
-            sigma_DeltaPt_Pt2 = sigma
-        #------
-        plt.xlabel(r'$\Delta p_T / p^2_{T,true}$', fontsize=12)
-        plt.title(f'Distribution of $\Delta p_T / p^2_{{T,true}}$ for {file_name}')
-        plt.legend() 
-        sub_dir_path = os.path.join(output_dir, f"{sub_dirs[0]}_{ftype}")
-        plt.savefig(os.path.join(sub_dir_path, f'{file_name}.png'))
-        #figure_path = os.path.join(cwd, f'{file_name}.png')
-        plt.close(fig)  # close the figure to free up memory
-        ################################
+            plt.plot(bins[:-1], fit_line, 'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (std, chi2)))
+            data_std = std
 
-        ############################### Plot the distribution of Delta d0 for each files
-        fig, ax = plt.subplots()  # create a new figure and axis object
+            plt.xlabel(xlabel, fontsize=12)
+            plt.title(title)
+            plt.legend()
+            plt.savefig(os.path.join(output_path, f'{file_name}.png'))
+            plt.close(fig)
+
+            return data_std
+        
+        # Usage example:
         file_name = os.path.basename(str(file_name))  # Extract the filename only from the full path
-        #------
-        # Plot the histogram distribution of Delta_d0_sel
-        n, bins, patches = plt.hist(Delta_d0_sel, bins=(100), histtype='step', label='Delta_d0_sel')      
-        # Fit a normal distribution to the data
-        mu, std = norm.fit(Delta_d0_sel)
-        fit_line = scipy.stats.norm.pdf(bins[:-1], mu, std) * sum(n * np.diff(bins))
-        # Calculate chi-square for normal distribution fit
-        chi2, p_value = scipy.stats.chisquare(n / np.sum(n), f_exp=fit_line / np.sum(fit_line))
-        # Plot the fitted line
-        plt.plot(bins[:-1], fit_line,'r', linewidth=1.5, label=(r"$\sigma=%0.3e$, $\chi^2=%0.3f$" % (std, chi2)))
-        d0_std = std
-        #------
-        plt.xlabel(r'$\Delta d_0$', fontsize=12)
-        plt.title(f'Distribution of $\Delta d_0$ for {file_name}')
-        plt.legend() 
-        sub_dir_path = os.path.join(output_dir, f"{sub_dirs[2]}_{ftype}")
-        plt.savefig(os.path.join(sub_dir_path, f'{file_name}.png'))
-        plt.close(fig)  # close the figure to free up memory
-        ################################
 
-    ##### Calculate Efficiency
+        # Plot the distributions for DeltaPt_Pt2
+        std_DeltaPt_Pt2 = plot_distribution_DeltaPt_Pt2(DeltaPt_Pt2_sel, len(DeltaPt_Pt2_sel) // 10, r'$\Delta p_T / p^2_{T,true}$', f'Distribution of $\Delta p_T / p^2_{{T,true}}$ for {file_name}', os.path.join(output_dir, f"{sub_dirs[0]}_{ftype}"), ftype, file_name)
+        std_values_DeltaPt_Pt2.append(std_DeltaPt_Pt2)
+
+        # Plot the distributions for Delta_d0
+        std_Delta_d0 = plot_distribution_Delta_d0_z0(Delta_d0_sel, 100, r'$\Delta d_0$', f'Distribution of $\Delta d_0$ for {file_name}', os.path.join(output_dir, f"{sub_dirs[2]}_{ftype}"), file_name)
+        std_values_Delta_d0.append(std_Delta_d0)
+
+        # Plot the distributions for Delta_z0
+        std_Delta_z0 = plot_distribution_Delta_d0_z0(Delta_z0_sel, 100, r'$\Delta z_0$', f'Distribution of $\Delta z_0$ for {file_name}', os.path.join(output_dir, f"{sub_dirs[3]}_{ftype}"), file_name)
+        std_values_Delta_z0.append(std_Delta_z0)
+
+      ######################### Calculate Efficiency
        # Create the histograms
         min_pt = min(min(MC_pt_all_list), min(MC_pt_list))    # Calculate the common axis limits for both histograms
         max_pt = max(max(MC_pt_all_list), max(MC_pt_list))    # Calculate the common axis limits for both histograms
@@ -233,49 +246,57 @@ for ftype in ['mu', 'e', 'pi']:
         ROOT.gROOT.SetBatch(False)  # Enable ineractive mode again
        # Clean up resources
         canvas.Close()
-    ##### 
+      ######################### 
 
-        # Calculate mean values of theta and momentum
+       # Calculate mean values of theta and momentum
         theta = int(np.mean(np.round(np.rad2deg(MC_theta_list))))  # Calculate mean of MC_theta_list
         momentum = int(np.mean(np.round(MC_p_list)))  # Calculate mean of MC_p_list
         transverse_momentum = int(np.mean(np.round(MC_pt_list)))  # Calculate mean of MC_pt_list
 
+       # Calculate std for d0 and z0
         d0_std = np.std(Delta_d0_sel)
-        # Append the values to the lists
+        z0_std = np.std(Delta_z0_sel)
+
+       # Append the values to the lists
         sigma_DeltaPt_Pt2_list.append(sigma_DeltaPt_Pt2)
         theta_list.append(theta)
         momentum_list.append(momentum)
         transverse_momentum_list.append(transverse_momentum)
         d0_std_list.append(d0_std)
+        z0_std_list.append(z0_std)
 
-        # Close the ROOT file
+       # Close the ROOT file
         file.Close()
 
    # Rename the lists
     theta = theta_list
     momentum = momentum_list
     transverse_momentum = transverse_momentum_list
-    sigma_DeltaPt_Pt2 = sigma_DeltaPt_Pt2_list
-    d0 = d0_std_list
+    #sigma_DeltaPt_Pt2 = sigma_DeltaPt_Pt2_list
+    #d0 = d0_std_list
+    #z0 = z0_std_list
+    sigma_DeltaPt_Pt2 = std_values_DeltaPt_Pt2
+    d0 = std_values_Delta_d0
+    z0 = std_values_Delta_z0
 
    # Create a dict by theta
     data_dict = {}
-    variable_names = ['momentum', 'transverse_momentum', 'sigma_DeltaPt_Pt2', 'd0', 'eff_list', 'errors_list']
+    variable_names = ['momentum', 'transverse_momentum', 'sigma_DeltaPt_Pt2', 'd0', 'z0', 'eff_list', 'errors_list']
     for i in range(len(theta)):
         if theta[i] not in data_dict:
             data_dict[theta[i]] = {}
-        for var_name, var_value in zip(variable_names, [momentum, transverse_momentum, sigma_DeltaPt_Pt2, d0, eff_list, errors_list]):
+        for var_name, var_value in zip(variable_names, [momentum, transverse_momentum, sigma_DeltaPt_Pt2, d0, z0, eff_list, errors_list]):
             if var_name not in data_dict[theta[i]]:
                 data_dict[theta[i]][var_name] = []
             data_dict[theta[i]][var_name].append(var_value[i])
 
    # Create a dict by momentum
     data_dict_p = {}
-    variable_names = ['theta', 'transverse_momentum', 'sigma_DeltaPt_Pt2', 'd0', 'eff_list', 'errors_list']
+    variable_names = ['theta', 'transverse_momentum', 'sigma_DeltaPt_Pt2', 'd0', 'z0', 'eff_list', 'errors_list']
     for i in range(len(momentum)):
         if momentum[i] not in data_dict_p:
             data_dict_p[momentum[i]] = {}
-        for var_name, var_value in zip(variable_names, [theta, transverse_momentum, sigma_DeltaPt_Pt2, d0, eff_list, errors_list]):
+        for var_name, var_value in zip(variable_names, [theta, transverse_momentum, sigma_DeltaPt_Pt2, d0, z0, eff_list, errors_list]):
             if var_name not in data_dict_p[momentum[i]]:
                 data_dict_p[momentum[i]][var_name] = []
             data_dict_p[momentum[i]][var_name].append(var_value[i])
@@ -335,6 +356,7 @@ for ftype in ['mu', 'e', 'pi']:
 
     ## Save the plot to a file
     plt.savefig(os.path.join(output_dir,'momentum_resolution_'+f'{ftype}'+'.png'))
+    plt.close(fig)  # close the figure to free up memory
     #----------------------------------
 
     ## Delta_pT/pT^2 vs theta
@@ -378,10 +400,11 @@ for ftype in ['mu', 'e', 'pi']:
 
     ## Save the plot to a file
     plt.savefig(os.path.join(output_dir,'momentum_resolution_theta_'+f'{ftype}'+'.png'))
+    plt.close(fig)  # close the figure to free up memory
     #----------------------------------
 
     ############################### Impact parameter resolution PLOT ###############################
-    ## sgima(d0) vs p
+    ## sgima(Delta d0) vs p
     #----------------------------------
     fig, ax = plt.subplots() 
     ax.set_xscale('log')
@@ -423,9 +446,10 @@ for ftype in ['mu', 'e', 'pi']:
     plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
 
     ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'Impact_parameter_resolution_'+f'{ftype}'+'.png'))
+    plt.savefig(os.path.join(output_dir,'Impact_parameterD0_resolution_'+f'{ftype}'+'.png'))
+    plt.close(fig)  # close the figure to free up memory
     #----------------------------------
-    ## sgima(d0) vs theta
+    ## sgima(Delta d0) vs theta
     #----------------------------------
     fig, ax = plt.subplots()
     ax.set_yscale('log')
@@ -466,15 +490,106 @@ for ftype in ['mu', 'e', 'pi']:
     plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
 
     ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'Impact_parameter_resolution_theta_'+f'{ftype}'+'.png'))
+    plt.savefig(os.path.join(output_dir,'Impact_parameterD0_resolution_theta_'+f'{ftype}'+'.png'))
+    plt.close(fig)  # close the figure to free up memory
     #----------------------------------
-
-    ############################### Efficiency PLOT ###############################
-    ## Single particle reconstruction efficiency vs pt
+    #=================
+    ## sgima(Delta z0) vs p
     #----------------------------------
     fig, ax = plt.subplots() 
     ax.set_xscale('log')
+    ax.set_yscale('log')
     # Add graduations on top and right sides of the plot
+    ax.xaxis.set_ticks_position('both')
+    ax.yaxis.set_ticks_position('both')
+    ax.tick_params(axis='x', which='both', direction='in')
+    ax.tick_params(axis='y', which='both', direction='in')
+    ax.set_xlabel(r'$p$ [GeV] ', fontsize=12)
+    ax.set_ylabel(r'$\sigma(\Delta z_0$) $[\mu m] $', fontsize=12)
+    markers = ['o', 's', 'd', 'X', '^']
+    handles = []
+    labels = []
+
+    for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
+        if t in [10, 30, 50, 70, 89]:
+            ## plot the points by theta
+            momentum = data_dict[t]['momentum']
+            z0 = data_dict[t]['z0']
+            z0_mu = [val * 1000 for val in z0]  # Convert z0 from mm to μm
+            scatter = ax.scatter(momentum, z0_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
+            handles.append(scatter)
+            labels.append(r'$\theta$ = '+str(t)+' deg')
+
+    # Customise title depending on ftype 
+    if ftype == 'mu' or ftype == 'pi':
+        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+    else:
+        title = r'Single $e^-$'
+    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
+    leg._legend_box.align = "left" # Make title align on the left
+
+    # add text in the upper left corner
+    text_str = "FCC−ee CLD"
+    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+    # add text in the upper right corner
+    text_str = f"~{Nevts} events/point"
+    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+
+    ## Save the plot to a file
+    plt.savefig(os.path.join(output_dir,'Impact_parameterZ0_resolution_'+f'{ftype}'+'.png'))
+    plt.close(fig)  # close the figure to free up memory
+    #----------------------------------
+    ## sgima(Delta z0) vs theta
+    #----------------------------------
+    fig, ax = plt.subplots()
+    ax.set_yscale('log')
+    # Add graduations on top and right sides of the plot
+    ax.xaxis.set_ticks_position('both')
+    ax.yaxis.set_ticks_position('both')
+    ax.tick_params(axis='x', which='both', direction='in')
+    ax.tick_params(axis='y', which='both', direction='in')
+    ax.set_xlabel(r'$\theta$ [deg] ', fontsize=12)
+    ax.set_ylabel(r'$\sigma(\Delta z_0$) $[\mu m] $', fontsize=12)
+    markers = ['o', 's', 's', '^']
+    handles = []
+    labels = []
+
+    for idx, (p, data_list_p) in enumerate(sorted(data_dict_p.items())):
+        if p in [1, 10, 100]:
+            ## plot the points by momentum
+            theta = data_dict_p[p]['theta']
+            z0 = data_dict_p[p]['z0']
+            z0_mu = [val * 1000 for val in z0]  # Convert z0 from mm to μm
+            scatter = ax.scatter(theta, z0_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
+            handles.append(scatter)
+            labels.append(r'$p$ = '+str(p)+' GeV')
+
+    # Customise title depending on ftype 
+    if ftype == 'mu' or ftype == 'pi':
+        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+    else:
+        title = r'Single $e^-$'
+    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
+    leg._legend_box.align = "left" # Make title align on the left
+
+    # add text in the upper left corner
+    text_str = "FCC−ee CLD"
+    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+    # add text in the upper right corner
+    text_str = f"~{Nevts} events/point"
+    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+
+    ## Save the plot to a file
+    plt.savefig(os.path.join(output_dir,'Impact_parameterZ0_resolution_theta_'+f'{ftype}'+'.png'))
+    plt.close(fig)  # close the figure to free up memory
+    #----------------------------------
+
+############################### Efficiency PLOT ###############################
+  ## Single particle reconstruction efficiency vs pt
+  #----------------------------------
+    fig, ax = plt.subplots() 
+    ax.set_xscale('log')
+   # Add graduations on top and right sides of the plot
     ax.xaxis.set_ticks_position('both')
     ax.yaxis.set_ticks_position('both')
     ax.tick_params(axis='x', which='both', direction='in')
@@ -487,7 +602,7 @@ for ftype in ['mu', 'e', 'pi']:
     labels = []
 
     for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
-        ## plot the points by theta
+       ## plot the points by theta
         pt = data_dict[t]['transverse_momentum']
         eff_points = data_dict[t]['eff_list']
         errors = data_dict[t]['errors_list']
@@ -495,7 +610,7 @@ for ftype in ['mu', 'e', 'pi']:
         handles.append(scatter)
         labels.append(r'$\theta$ = '+str(t)+' deg')
 
-    # Customise title depending on ftype 
+   # Customise title depending on ftype 
     if ftype == 'mu' or ftype == 'pi':
         title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
     else:
@@ -503,16 +618,17 @@ for ftype in ['mu', 'e', 'pi']:
     leg = plt.legend(handles,labels, loc='lower right', labelspacing=-0.1, title=title, title_fontsize='larger')
     leg._legend_box.align = "left" # Make title align on the left
 
-    # add text in the upper left corner
+   # add text in the upper left corner
     text_str = "FCC−ee CLD"
     plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-    # add text in the upper right corner
+   # add text in the upper right corner
     text_str = f"~{Nevts} events/point"
     plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
 
-    ## Save the plot to a file
+   ## Save the plot to a file
     plt.savefig(os.path.join(output_dir,'reco_efficiency_'+f'{ftype}'+'.png'))
-    #----------------------------------
+    plt.close(fig)  # close the figure to free up memory
+  #----------------------------------
 
     ## show plots
     #plt.show() 
