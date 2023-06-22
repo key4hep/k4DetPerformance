@@ -47,7 +47,7 @@ for ftype in ['mu', 'e', 'pi']:
     std_values_DeltaPt_Pt2 = []
     std_values_Delta_d0 = []
     std_values_Delta_z0 = []
-    # Create empty lists to store the calculated points and errors
+   # List for calculated point and error from the divided histogram
     eff_list = []
     errors_list = []
 
@@ -184,69 +184,66 @@ for ftype in ['mu', 'e', 'pi']:
         std_values_Delta_z0.append(std_Delta_z0)
 
       ######################### Calculate Efficiency
-       # Create the histograms
-        min_pt = min(min(MC_pt_all_list), min(MC_pt_list))    # Calculate the common axis limits for both histograms
-        max_pt = max(max(MC_pt_all_list), max(MC_pt_list))    # Calculate the common axis limits for both histograms
-        Nbins = 10    # Calculate the  number of bins for both histograms
-        MC_matched_pt_hist = ROOT.TH1F("MC_matched_pt_hist", "MC matched pT Distribution", Nbins, min_pt, max_pt) # Nbins, min, max)
-        MC_pt_hist = ROOT.TH1F("MC_pt_hist", "MC pT Distribution", Nbins, min_pt, max_pt)   # Nbins, min, max)
-       # Fill the histograms
-        for MC_pt, dpt in zip( MC_pt_list, DeltaPt_Pt2):
-            if dpt in DeltaPt_Pt2:
-                MC_matched_pt_hist.Fill(MC_pt)
-        for pt in MC_pt_all_list:
-            MC_pt_hist.Fill(pt)
-       # Divide the histograms
-        divided_hist = ROOT.TH1F("divided_hist", "Divided Histogram", Nbins, min_pt, max_pt) # Nbins, min, max)
-        divided_hist.Divide(MC_matched_pt_hist, MC_pt_hist, 1, 1, "b") # weight Hist1, weight Hist2, b = binomial error     
-        #divided_hist.Print("all") # Print the bin contents and errors
-       # Get the calculated point and error from the divided histogram
-        for bin in range(1, divided_hist.GetNbinsX() + 1):
-            bin_content = divided_hist.GetBinContent(bin)
-            bin_error = divided_hist.GetBinError(bin)
-            if bin_content != 0:
-                eff_list.append(bin_content)
-                errors_list.append(bin_error)
-       # Plot the histograms
-        ROOT.gROOT.SetBatch(True)   # Disable interactive mode
-        file_name = os.path.basename(str(file_name))  # Extract the filename only from the full path
-       # Create canvas
-        canvas = ROOT.TCanvas("canvas", "Histograms", 800, 600)
-        canvas.Divide(2, 1) # Divide the canvas into 2 pads
-        canvas . cd (1) ##
-       # Draw MC_matched_pt_hist
-        MC_matched_pt_hist.SetTitle("pT Distribution")
-        MC_matched_pt_hist.GetXaxis().SetTitle("pT (GeV)")
-        MC_matched_pt_hist.Draw()
-        MC_matched_pt_hist.SetLineColor(ROOT.kBlue)
-        MC_matched_pt_hist.SetLineWidth(2)
-       # Draw MC_pt_hist on the same canvas
-        MC_pt_hist.Draw("same")
-        MC_pt_hist.SetLineColor(ROOT.kRed)
-        MC_pt_hist.SetLineWidth(2)
-        MC_pt_hist.SetLineStyle(9)
-       # Set legend
-        legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)  # Adjust the legend position as needed
-        legend.SetTextSize(0.03)  # Adjust the text size
-        legend.AddEntry(MC_matched_pt_hist, "MC matched pT Distribution", "l")
-        legend.AddEntry(MC_pt_hist, "MC pT Distribution", "l")
-        legend.Draw()
-        canvas . cd (2) ##
-       # Draw the divided_hist
-        divided_hist.GetXaxis().SetTitle("pT (GeV)")
-        divided_hist.Draw()
-       # Set properties
-        divided_hist.SetLineColor(ROOT.kGreen)
-        divided_hist.SetLineWidth(2)
-       # Set title and axis labels
-        divided_hist.SetTitle("Divided Histogram")
-       # Save canvas as image file
-        sub_dir_path = os.path.join(output_dir, f"{sub_dirs[1]}_{ftype}")
-        canvas.SaveAs(os.path.join(sub_dir_path, f'{file_name}_pT.png'))
-        ROOT.gROOT.SetBatch(False)  # Enable ineractive mode again
-       # Clean up resources
-        canvas.Close()
+        def calculate_efficiency(data_list, mc_list, delta_list, output_path, file_name):
+           # Create histograms
+            min_pt = min(min(data_list), min(mc_list))
+            max_pt = max(max(data_list), max(mc_list))
+            Nbins = 10
+            data_hist = ROOT.TH1F("data_hist", "Data Distribution", Nbins, min_pt, max_pt)
+            mc_matched_hist = ROOT.TH1F("mc_matched_hist", "MC Matched Distribution", Nbins, min_pt, max_pt)
+           # Fill the histograms
+            for data_pt, delta_pt in zip(data_list, delta_list):
+                if delta_pt in delta_list:
+                    mc_matched_hist.Fill(data_pt)
+            for pt in mc_list:
+                data_hist.Fill(pt)
+           # Divide the histograms
+            divided_hist = ROOT.TH1F("divided_hist", "Divided Histogram", Nbins, min_pt, max_pt)
+            divided_hist.Divide(mc_matched_hist, data_hist, 1, 1, "b")
+            for bin in range(1, divided_hist.GetNbinsX() + 1):
+                bin_content = divided_hist.GetBinContent(bin)
+                bin_error = divided_hist.GetBinError(bin)
+                if bin_content != 0:
+                    eff_list.append(bin_content)
+                    errors_list.append(bin_error)
+           # Plot the histograms
+            ROOT.gROOT.SetBatch(True)
+            file_name = os.path.basename(str(file_name))
+            canvas = ROOT.TCanvas("canvas", "Histograms", 800, 600)
+            canvas.Divide(2, 1)
+
+            canvas.cd(1)
+            data_hist.SetTitle("Data Distribution")
+            data_hist.GetXaxis().SetTitle("pT (GeV)")
+            data_hist.Draw()
+            data_hist.SetLineColor(ROOT.kBlue)
+            data_hist.SetLineWidth(2)
+
+            mc_matched_hist.Draw("same")
+            mc_matched_hist.SetLineColor(ROOT.kRed)
+            mc_matched_hist.SetLineWidth(2)
+            mc_matched_hist.SetLineStyle(9)
+
+            legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
+            legend.SetTextSize(0.03)
+            legend.AddEntry(mc_matched_hist, "MC Matched Distribution", "l")
+            legend.AddEntry(data_hist, "Data Distribution", "l")
+            legend.Draw()
+
+            canvas.cd(2)
+            divided_hist.GetXaxis().SetTitle("pT (GeV)")
+            divided_hist.Draw()
+            divided_hist.SetLineColor(ROOT.kGreen)
+            divided_hist.SetLineWidth(2)
+            divided_hist.SetTitle("Divided Histogram")
+
+            canvas.SaveAs(os.path.join(output_path, f'{file_name}.png'))
+            ROOT.gROOT.SetBatch(False)
+            canvas.Close()
+
+            return eff_list, errors_list
       ######################### 
+        efficiency_list, errors_list = calculate_efficiency(MC_pt_all_list, MC_pt_list, DeltaPt_Pt2,  os.path.join(output_dir, f"{sub_dirs[1]}_{ftype}"), file_name)
 
        # Calculate mean values of theta and momentum
         theta = int(np.mean(np.round(np.rad2deg(MC_theta_list))))  # Calculate mean of MC_theta_list
@@ -302,333 +299,242 @@ for ftype in ['mu', 'e', 'pi']:
             data_dict_p[momentum[i]][var_name].append(var_value[i])
 
     ############################### Momentum resolution PLOT ###############################
-    ## Delta_pT/pT^2 vs p
+    def momentum_resolution_plots(data_dict, data_dict_p, ftype, Nevts, output_dir):
+       ## Delta_pT/pT^2 vs p
+       #----------------------------------
+        def momentum_resolution_plot():
+            fig, ax = plt.subplots()
+            ax.set_xscale('log')
+            ax.set_yscale('log')
+            ax.xaxis.set_ticks_position('both')
+            ax.yaxis.set_ticks_position('both')
+            ax.tick_params(axis='x', which='both', direction='in')
+            ax.tick_params(axis='y', which='both', direction='in')
+            ax.set_xlabel(r'$p$ [GeV]', fontsize=12)
+            ax.set_ylabel(r'$\sigma(\Delta p_T / p^2_{T,true})$ $[GeV^{-1}] $', fontsize=12)
+            markers = ['o', 's', 'd', 'X', '^']
+            handles = []
+            labels = []
+
+            for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
+                if t in [10, 30, 50, 70, 89]:
+                    momentum = data_dict[t]['momentum']
+                    sigma_DeltaPt_Pt2 = data_dict[t]['sigma_DeltaPt_Pt2']
+                    scatter = ax.scatter(momentum, sigma_DeltaPt_Pt2, s=30, linewidth=0, marker=markers[idx % len(markers)])
+                    handles.append(scatter)
+                    labels.append(r'$\theta$ = '+str(t)+' deg')
+
+                    a, b, r_value, p_value, std_err = linregress(np.log(momentum), np.log(sigma_DeltaPt_Pt2))
+                    xfit = np.linspace(min(momentum), max(momentum), 100)
+                    yfit = np.exp(b) * xfit**a
+                    plt.loglog(xfit, yfit,'--', linewidth=0.5)
+
+            legend_line = mlines.Line2D([], [], color='black', linestyle='--', linewidth=0.5)
+            handles.append(legend_line)
+            labels.append(r'a + b / (p $\sin^{3/2}\theta)$')
+
+            if ftype == 'mu' or ftype == 'pi':
+                title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+            else:
+                title = r'Single $e^-$'
+            leg = plt.legend(handles, labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
+            leg._legend_box.align = "left"
+
+            text_str = "FCC−ee CLD"
+            plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+            text_str = f"~{Nevts} events/point"
+            plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+
+            plt.savefig(os.path.join(output_dir, 'momentum_resolution_' + f'{ftype}' + '.png'))
+            plt.close(fig)
+
+       ## Delta_pT/pT^2 vs theta
+       #----------------------------------
+        def momentum_resolution_theta_plot():
+            fig, ax = plt.subplots()
+            ax.set_yscale('log')
+            ax.xaxis.set_ticks_position('both')
+            ax.yaxis.set_ticks_position('both')
+            ax.tick_params(axis='x', which='both', direction='in')
+            ax.tick_params(axis='y', which='both', direction='in')
+            ax.set_xlabel(r'$\theta$ [deg]', fontsize=12)
+            ax.set_ylabel(r'$\sigma(\Delta p_T / p^2_{T,true})$ $[GeV^{-1}] $', fontsize=12)
+            markers = ['o', 's', 's', '^']
+            handles = []
+            labels = []
+
+            for idx, (p, data_list_p) in enumerate(sorted(data_dict_p.items())):
+                if p in [1, 10, 100]:
+                    theta = data_dict_p[p]['theta']
+                    sigma_DeltaPt_Pt2 = data_dict_p[p]['sigma_DeltaPt_Pt2']
+                    scatter = ax.scatter(theta, sigma_DeltaPt_Pt2, s=30, linewidth=0, marker=markers[idx % len(markers)])
+                    handles.append(scatter)
+                    labels.append(r'$p$ = '+str(p)+' GeV')
+
+            if ftype == 'mu' or ftype == 'pi':
+                title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+            else:
+                title = r'Single $e^-$'
+            leg = plt.legend(handles, labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
+            leg._legend_box.align = "left"
+
+            text_str = "FCC−ee CLD"
+            plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+            text_str = f"~{Nevts} events/point"
+            plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+
+            plt.savefig(os.path.join(output_dir, 'momentum_resolution_theta_' + f'{ftype}' + '.png'))
+            plt.close(fig)
+
+        momentum_resolution_plot()
+        momentum_resolution_theta_plot()
     #----------------------------------
-    fig, ax = plt.subplots() 
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-    # Add graduations on top and right sides of the plot
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
-    ax.tick_params(axis='x', which='both', direction='in')
-    ax.tick_params(axis='y', which='both', direction='in')
-    ax.set_xlabel(r'$p$ [GeV] ', fontsize=12)
-    ax.set_ylabel(r'$\sigma(\Delta p_T / p^2_{T,true})$ $[GeV^{-1}] $', fontsize=12)
-    markers = ['o', 's', 'd', 'X', '^']
-    handles = []
-    labels = []
-
-    for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
-        if t in [10, 30, 50, 70, 89]:
-            ## plot the points by theta
-            momentum = data_dict[t]['momentum']
-            sigma_DeltaPt_Pt2 = data_dict[t]['sigma_DeltaPt_Pt2']
-            scatter = ax.scatter(momentum, sigma_DeltaPt_Pt2, s=30, linewidth=0, marker=markers[idx % len(markers)])
-            handles.append(scatter)
-            labels.append(r'$\theta$ = '+str(t)+' deg')
-
-            ## fit by theta
-            # Fit the data using linear regression
-            a, b, r_value, p_value, std_err = linregress(np.log(momentum), np.log(sigma_DeltaPt_Pt2))
-            # Plot the fitted line on top of the data
-            xfit = np.linspace(min(momentum), max(momentum), 100)
-            yfit = np.exp(b) * xfit**a
-            plt.loglog(xfit, yfit,'--', linewidth=0.5)
-
-    legend_line = mlines.Line2D([], [], color='black', linestyle='--', linewidth=0.5)
-    handles.append(legend_line)
-    labels.append(r'a + b / (p $\sin^{3/2}\theta)$')
-
-    # Customise title depending on ftype 
-    if ftype == 'mu' or ftype == 'pi':
-        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
-    else:
-        title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
-    leg._legend_box.align = "left" # Make title align on the left
-
-    # add text in the upper left corner
-    text_str = "FCC−ee CLD"
-    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-    # add text in the upper right corner
-    text_str = f"~{Nevts} events/point"
-    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
-
-    ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'momentum_resolution_'+f'{ftype}'+'.png'))
-    plt.close(fig)  # close the figure to free up memory
-    #----------------------------------
-
-    ## Delta_pT/pT^2 vs theta
-    #----------------------------------
-    fig, ax = plt.subplots() 
-    ax.set_yscale('log')
-    # Add graduations on top and right sides of the plot
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
-    ax.tick_params(axis='x', which='both', direction='in')
-    ax.tick_params(axis='y', which='both', direction='in')
-    ax.set_xlabel(r'$\theta$ [deg] ', fontsize=12)
-    ax.set_ylabel(r'$\sigma(\Delta p_T / p^2_{T,true})$ $[GeV^{-1}] $', fontsize=12)
-    markers = ['o', 's', 's', '^']
-    handles = []
-    labels = []
-
-    for idx, (p, data_list_p) in enumerate(sorted(data_dict_p.items())):
-        if p in [1, 10, 100]:
-            ## plot the points by momentum
-            theta = data_dict_p[p]['theta']
-            sigma_DeltaPt_Pt2 = data_dict_p[p]['sigma_DeltaPt_Pt2']
-            scatter = ax.scatter(theta, sigma_DeltaPt_Pt2, s=30, linewidth=0, marker=markers[idx % len(markers)])
-            handles.append(scatter)
-            labels.append(r'$p$ = '+str(p)+' GeV')
-
-    # Customise title depending on ftype 
-    if ftype == 'mu' or ftype == 'pi':
-        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
-    else:
-        title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
-    leg._legend_box.align = "left" # Make title align on the left
-
-    # add text in the upper left corner
-    text_str = "FCC−ee CLD"
-    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-    # add text in the upper right corner
-    text_str = f"~{Nevts} events/point"
-    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
-
-    ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'momentum_resolution_theta_'+f'{ftype}'+'.png'))
-    plt.close(fig)  # close the figure to free up memory
-    #----------------------------------
+    momentum_resolution_plots(data_dict, data_dict_p, ftype, Nevts, output_dir)
 
     ############################### Impact parameter resolution PLOT ###############################
-    ## sgima(Delta d0) vs p
+    def Impact_parameter_esolution_plots(data_dict, data_dict_p, ftype, Nevts, output_dir, variable):
+       ## sgima(Delta d0) vs p
+       #----------------------------------
+        def Impact_parameter_resolution_plot():
+            fig, ax = plt.subplots()
+            #ax.set_xscale('log')
+            ax.set_yscale('log')
+            ax.xaxis.set_ticks_position('both')
+            ax.yaxis.set_ticks_position('both')
+            ax.tick_params(axis='x', which='both', direction='in')
+            ax.tick_params(axis='y', which='both', direction='in')
+            ax.set_xlabel(r'$p$ [GeV]', fontsize=12)
+            if variable == 'd0':
+                ax.set_ylabel(r'$\sigma(\Delta d_0)$ [$\mu$m]', fontsize=12)
+            elif variable == 'z0':
+                ax.set_ylabel(r'$\sigma(\Delta z_0)$ [$\mu$m]', fontsize=12)
+            markers = ['o', 's', 'd', 'X', '^']
+            handles = []
+            labels = []
+
+            for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
+                if t in [10, 30, 50, 70, 89]:
+                    ## plot the points by theta
+                    momentum = data_dict[t]['momentum']
+                    data = data_dict[t][variable]
+                    data_mu = [val * 1000 for val in data]  # Convert d0/z0 from mm to μm
+                    scatter = ax.scatter(momentum, data_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
+                    handles.append(scatter)
+                    labels.append(r'$\theta$ = '+str(t)+' deg')
+
+           # Title depending on ftype
+            if ftype == 'mu' or ftype == 'pi':
+                title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+            else:
+                title = r'Single $e^-$'
+            leg = plt.legend(handles, labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
+            leg._legend_box.align = "left"
+
+            text_str = "FCC−ee CLD"
+            plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+            text_str = f"~{Nevts} events/point"
+            plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+
+            plt.savefig(os.path.join(output_dir, 'Impact_parameter_' + variable + '_resolution_' + f'{ftype}' + '.png'))
+            plt.close(fig)
+
+       ## sigma(Delta d0) vs theta
+       #----------------------------------
+        def Impact_parameter_resolution_theta_plot():
+            fig, ax = plt.subplots()
+            ax.set_yscale('log')
+            ax.xaxis.set_ticks_position('both') # Add graduations on top and right sides of the plot
+            ax.yaxis.set_ticks_position('both') # Add graduations on top and right sides of the plot
+            ax.tick_params(axis='x', which='both', direction='in')
+            ax.tick_params(axis='y', which='both', direction='in')
+            ax.set_xlabel(r'$\theta$ [deg]', fontsize=12)
+            if variable == 'd0':
+                ax.set_ylabel(r'$\sigma(\Delta d_0)$ [$\mu$m]', fontsize=12)
+            elif variable == 'z0':
+                ax.set_ylabel(r'$\sigma(\Delta z_0)$ [$\mu$m]', fontsize=12)
+            markers = ['o', 's', 's', '^']
+            handles = []
+            labels = []
+
+            for idx, (p, data_list_p) in enumerate(sorted(data_dict_p.items())):
+                if p in [1, 10, 100]:
+                   ## plot the points by momentum
+                    theta = data_dict_p[p]['theta']
+                    data = data_dict_p[p][variable]
+                    data_mu = [val * 1000 for val in data]  # Convert d0/z0 from mm to μm
+                    scatter = ax.scatter(theta, data_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
+                    handles.append(scatter)
+                    labels.append(r'$p$ = '+str(p)+' GeV')
+
+           # Title depending on ftype 
+            if ftype == 'mu' or ftype == 'pi':
+                title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+            else:
+                title = r'Single $e^-$'
+            leg = plt.legend(handles, labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
+            leg._legend_box.align = "left" # Make title align on the left
+
+           # add text in the upper left corner
+            text_str = "FCC−ee CLD"
+            plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+           # add text in the upper right corner
+            text_str = f"~{Nevts} events/point"
+            plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+           # Save the plot to a file
+            plt.savefig(os.path.join(output_dir, 'Impact_parameter_' + variable + '_resolution_theta_' + f'{ftype}' + '.png'))
+            plt.close(fig)  # close the figure to free up memory
+
+        Impact_parameter_resolution_plot()
+        Impact_parameter_resolution_theta_plot()
     #----------------------------------
-    fig, ax = plt.subplots() 
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-    # Add graduations on top and right sides of the plot
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
-    ax.tick_params(axis='x', which='both', direction='in')
-    ax.tick_params(axis='y', which='both', direction='in')
-    ax.set_xlabel(r'$p$ [GeV] ', fontsize=12)
-    ax.set_ylabel(r'$\sigma(\Delta d_0$) $[\mu m] $', fontsize=12)
-    markers = ['o', 's', 'd', 'X', '^']
-    handles = []
-    labels = []
-
-    for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
-        if t in [10, 30, 50, 70, 89]:
-            ## plot the points by theta
-            momentum = data_dict[t]['momentum']
-            d0 = data_dict[t]['d0']
-            d0_mu = [val * 1000 for val in d0]  # Convert d0 from mm to μm
-            scatter = ax.scatter(momentum, d0_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
-            handles.append(scatter)
-            labels.append(r'$\theta$ = '+str(t)+' deg')
-
-    # Customise title depending on ftype 
-    if ftype == 'mu' or ftype == 'pi':
-        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
-    else:
-        title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
-    leg._legend_box.align = "left" # Make title align on the left
-
-    # add text in the upper left corner
-    text_str = "FCC−ee CLD"
-    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-    # add text in the upper right corner
-    text_str = f"~{Nevts} events/point"
-    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
-
-    ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'Impact_parameterD0_resolution_'+f'{ftype}'+'.png'))
-    plt.close(fig)  # close the figure to free up memory
-    #----------------------------------
-    ## sgima(Delta d0) vs theta
-    #----------------------------------
-    fig, ax = plt.subplots()
-    ax.set_yscale('log')
-    # Add graduations on top and right sides of the plot
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
-    ax.tick_params(axis='x', which='both', direction='in')
-    ax.tick_params(axis='y', which='both', direction='in')
-    ax.set_xlabel(r'$\theta$ [deg] ', fontsize=12)
-    ax.set_ylabel(r'$\sigma(\Delta d_0$) $[\mu m] $', fontsize=12)
-    markers = ['o', 's', 's', '^']
-    handles = []
-    labels = []
-
-    for idx, (p, data_list_p) in enumerate(sorted(data_dict_p.items())):
-        if p in [1, 10, 100]:
-            ## plot the points by momentum
-            theta = data_dict_p[p]['theta']
-            d0 = data_dict_p[p]['d0']
-            d0_mu = [val * 1000 for val in d0]  # Convert d0 from mm to μm
-            scatter = ax.scatter(theta, d0_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
-            handles.append(scatter)
-            labels.append(r'$p$ = '+str(p)+' GeV')
-
-    # Customise title depending on ftype 
-    if ftype == 'mu' or ftype == 'pi':
-        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
-    else:
-        title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
-    leg._legend_box.align = "left" # Make title align on the left
-
-    # add text in the upper left corner
-    text_str = "FCC−ee CLD"
-    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-    # add text in the upper right corner
-    text_str = f"~{Nevts} events/point"
-    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
-
-    ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'Impact_parameterD0_resolution_theta_'+f'{ftype}'+'.png'))
-    plt.close(fig)  # close the figure to free up memory
-    #----------------------------------
-    #=================
-    ## sgima(Delta z0) vs p
-    #----------------------------------
-    fig, ax = plt.subplots() 
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-    # Add graduations on top and right sides of the plot
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
-    ax.tick_params(axis='x', which='both', direction='in')
-    ax.tick_params(axis='y', which='both', direction='in')
-    ax.set_xlabel(r'$p$ [GeV] ', fontsize=12)
-    ax.set_ylabel(r'$\sigma(\Delta z_0$) $[\mu m] $', fontsize=12)
-    markers = ['o', 's', 'd', 'X', '^']
-    handles = []
-    labels = []
-
-    for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
-        if t in [10, 30, 50, 70, 89]:
-            ## plot the points by theta
-            momentum = data_dict[t]['momentum']
-            z0 = data_dict[t]['z0']
-            z0_mu = [val * 1000 for val in z0]  # Convert z0 from mm to μm
-            scatter = ax.scatter(momentum, z0_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
-            handles.append(scatter)
-            labels.append(r'$\theta$ = '+str(t)+' deg')
-
-    # Customise title depending on ftype 
-    if ftype == 'mu' or ftype == 'pi':
-        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
-    else:
-        title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
-    leg._legend_box.align = "left" # Make title align on the left
-
-    # add text in the upper left corner
-    text_str = "FCC−ee CLD"
-    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-    # add text in the upper right corner
-    text_str = f"~{Nevts} events/point"
-    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
-
-    ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'Impact_parameterZ0_resolution_'+f'{ftype}'+'.png'))
-    plt.close(fig)  # close the figure to free up memory
-    #----------------------------------
-    ## sgima(Delta z0) vs theta
-    #----------------------------------
-    fig, ax = plt.subplots()
-    ax.set_yscale('log')
-    # Add graduations on top and right sides of the plot
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
-    ax.tick_params(axis='x', which='both', direction='in')
-    ax.tick_params(axis='y', which='both', direction='in')
-    ax.set_xlabel(r'$\theta$ [deg] ', fontsize=12)
-    ax.set_ylabel(r'$\sigma(\Delta z_0$) $[\mu m] $', fontsize=12)
-    markers = ['o', 's', 's', '^']
-    handles = []
-    labels = []
-
-    for idx, (p, data_list_p) in enumerate(sorted(data_dict_p.items())):
-        if p in [1, 10, 100]:
-            ## plot the points by momentum
-            theta = data_dict_p[p]['theta']
-            z0 = data_dict_p[p]['z0']
-            z0_mu = [val * 1000 for val in z0]  # Convert z0 from mm to μm
-            scatter = ax.scatter(theta, z0_mu, s=30, linewidth=0, marker=markers[idx % len(markers)])
-            handles.append(scatter)
-            labels.append(r'$p$ = '+str(p)+' GeV')
-
-    # Customise title depending on ftype 
-    if ftype == 'mu' or ftype == 'pi':
-        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
-    else:
-        title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='upper right', labelspacing=-0.2, title=title, title_fontsize='larger')
-    leg._legend_box.align = "left" # Make title align on the left
-
-    # add text in the upper left corner
-    text_str = "FCC−ee CLD"
-    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-    # add text in the upper right corner
-    text_str = f"~{Nevts} events/point"
-    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
-
-    ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'Impact_parameterZ0_resolution_theta_'+f'{ftype}'+'.png'))
-    plt.close(fig)  # close the figure to free up memory
-    #----------------------------------
+    Impact_parameter_esolution_plots(data_dict, data_dict_p, ftype, Nevts, output_dir, 'd0')
+    Impact_parameter_esolution_plots(data_dict, data_dict_p, ftype, Nevts, output_dir, 'z0')
 
 ############################### Efficiency PLOT ###############################
+  #----------------------------------
   ## Single particle reconstruction efficiency vs pt
+    def efficiency_plot(data_dict, ftype, Nevts, output_dir):
+        fig, ax = plt.subplots()
+        ax.set_xscale('log')
+       # Add graduations on top and right sides of the plot
+        ax.xaxis.set_ticks_position('both')
+        ax.yaxis.set_ticks_position('both')
+        ax.tick_params(axis='x', which='both', direction='in')
+        ax.tick_params(axis='y', which='both', direction='in')
+        ax.set_xlabel(r'$p_T$ [GeV]', fontsize=12)
+        ax.set_ylabel('Reconstruction efficiency', fontsize=12)
+        markers = ['o', 's', 'd', 'X', '^']
+        handles = []
+        labels = []
+
+        for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
+           ## plot the points by theta
+            pt = data_dict[t]['transverse_momentum']
+            eff_points = data_dict[t]['eff_list']
+            errors = data_dict[t]['errors_list']
+            scatter = plt.errorbar(pt, eff_points, yerr=errors, fmt=markers[idx % len(markers)], capsize=3)
+            handles.append(scatter)
+            labels.append(r'$\theta$ = '+str(t)+' deg')
+
+       # Customise title depending on ftype 
+        if ftype == 'mu' or ftype == 'pi':
+            title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
+        else:
+            title = r'Single $e^-$'
+        leg = plt.legend(handles,labels, loc='lower right', labelspacing=-0.1, title=title, title_fontsize='larger')
+        leg._legend_box.align = "left" # Make title align on the left
+
+       # add text in the upper left corner
+        text_str = "FCC−ee CLD"
+        plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
+       # add text in the upper right corner
+        text_str = f"~{Nevts} events/point"
+        plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
+
+       # Save the plot to a file
+        plt.savefig(os.path.join(output_dir,'reco_efficiency_'+f'{ftype}'+'.png'))
+        plt.close(fig)  # close the figure to free up memory
   #----------------------------------
-    fig, ax = plt.subplots() 
-    ax.set_xscale('log')
-   # Add graduations on top and right sides of the plot
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
-    ax.tick_params(axis='x', which='both', direction='in')
-    ax.tick_params(axis='y', which='both', direction='in')
-    #ax.set_title(r'single $\mu^-$', fontsize=14)
-    ax.set_xlabel(r'$p_T$ [GeV] ', fontsize=12)
-    ax.set_ylabel(r'Reconstruction efficiency', fontsize=12)
-    markers = ['o', 's', 'd', 'X', '^']
-    handles = []
-    labels = []
+    efficiency_plot(data_dict, ftype, Nevts, output_dir)
 
-    for idx, (t, data_list) in enumerate(sorted(data_dict.items())):
-       ## plot the points by theta
-        pt = data_dict[t]['transverse_momentum']
-        eff_points = data_dict[t]['eff_list']
-        errors = data_dict[t]['errors_list']
-        scatter = plt.errorbar(pt, eff_points, yerr=errors, fmt=markers[idx % len(markers)], capsize=3)
-        handles.append(scatter)
-        labels.append(r'$\theta$ = '+str(t)+' deg')
 
-   # Customise title depending on ftype 
-    if ftype == 'mu' or ftype == 'pi':
-        title = r'Single $\mu^-$' if ftype == 'mu' else r'Single $\pi^-$'
-    else:
-        title = r'Single $e^-$'
-    leg = plt.legend(handles,labels, loc='lower right', labelspacing=-0.1, title=title, title_fontsize='larger')
-    leg._legend_box.align = "left" # Make title align on the left
-
-   # add text in the upper left corner
-    text_str = "FCC−ee CLD"
-    plt.text(-0.00005, 1.04, text_str, transform=ax.transAxes, fontsize=12, va='top', ha='left')
-   # add text in the upper right corner
-    text_str = f"~{Nevts} events/point"
-    plt.text(1.0, 1.04, text_str, transform=ax.transAxes, fontsize=10, va='top', ha='right')
-
-   ## Save the plot to a file
-    plt.savefig(os.path.join(output_dir,'reco_efficiency_'+f'{ftype}'+'.png'))
-    plt.close(fig)  # close the figure to free up memory
-  #----------------------------------
-
-    ## show plots
-    #plt.show() 
