@@ -41,5 +41,10 @@ python ./FullSim/TrackingPerformance/Analysis.py
 
 ### Plotting
 ```
-python FullSim/TrackingPerformance/CLDprefPlot_track.py
+python FullSim/TrackingPerformance/CLDprefPlot_track.py -DetectorModel FCCee_oX_v0Y -Nevts n
+```
+
+Use the following command to read the input parameters needed:
+```
+python FullSim/TrackingPerformance/CLDprefPlot_track.py -h
 ```
