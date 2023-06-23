@@ -8,6 +8,7 @@ import matplotlib.lines as mlines
 from statistics import mean # importing mean()
 from scipy.stats import norm, crystalball, chisquare
 from scipy.stats import linregress
+from scipy.optimize import curve_fit
 import argparse
 
 # Get the current working directory
@@ -16,10 +17,9 @@ cwd = os.getcwd()
 # Set Detector Model and numder of events
 #Nevts = "1000"
 #DetectorModel = "FCCee_o1_v04"
-
 # Define the command-line argument parser
 parser = argparse.ArgumentParser(description="Script for plotting Detector Performances")
-parser.add_argument("-DetectorModel", help="Detector model: FCCee_o1_v04 or FCCee_o2_v02", required=True)
+parser.add_argument("-DetectorModel", help="Detector model: FCCee_o1_v04 \n FCCee_o2_v02", required=True)
 parser.add_argument("-Nevts", help="Number of events", required=True)
 args = parser.parse_args()
 
@@ -83,8 +83,8 @@ for ftype in ['mu', 'e', 'pi']:
             for j in range(len(MC_tlv)):
                 MC_pt_all = MC_tlv[j].Pt()
                 MC_pt_all_list.append(MC_pt_all)  # Append each MC_pt value to the list
-                if (trk_pT != 0) or (trk_pT != -9) :  # Matched particles only
-                    trk_pt = trk_pT[j]
+                trk_pt = trk_pT[j]
+                if trk_pt not in [0, -9]:  # Matched particles only
                     trk_pt_list.append(trk_pt)  # Append each trk_pt value to the list
                     d0 = trk_d0[j]
                     d0_list.append(d0)  # Append each d0 value to the list
@@ -96,7 +96,7 @@ for ftype in ['mu', 'e', 'pi']:
                     MC_p_list.append(MC_p)  # Append each MC_p value to the list
                     MC_pt = MC_tlv[j].Pt()
                     MC_pt_list.append(MC_pt)  # Append each MC_pt value to the list                 
-            DeltaPt_Pt2.append( (trk_pt - MC_pt) / (MC_pt * MC_pt) )       
+            DeltaPt_Pt2.append( (trk_pt - MC_pt) / (MC_pt * MC_pt) )  
 
         #### Remove badly reconstructed tracks
         def filter_data(data, threshold, n_selections):
@@ -400,12 +400,12 @@ for ftype in ['mu', 'e', 'pi']:
     #----------------------------------
 
     ############################### Impact parameter resolution PLOT ###############################
-    def Impact_parameter_esolution_plots(data_dict, data_dict_p, ftype, Nevts, output_dir, variable):
-       ## sgima(Delta d0) vs p
+    def Impact_parameter_resolution_plots(data_dict, data_dict_p, ftype, Nevts, output_dir, variable):
+       ## sgima(Delta d0/z0) vs p
        #----------------------------------
         def Impact_parameter_resolution_plot():
             fig, ax = plt.subplots()
-            #ax.set_xscale('log')
+            ax.set_xscale('log')
             ax.set_yscale('log')
             ax.xaxis.set_ticks_position('both') # Add graduations on top and right sides of the plot
             ax.yaxis.set_ticks_position('both') # Add graduations on top and right sides of the plot
@@ -449,7 +449,7 @@ for ftype in ['mu', 'e', 'pi']:
             plt.savefig(os.path.join(output_dir, 'Impact_parameter_' + variable + '_resolution_' + f'{ftype}' + '.png'))
             plt.close(fig)  # close the figure to free up memory
 
-       ## sigma(Delta d0) vs theta
+       ## sigma(Delta d0/z0) vs theta
        #----------------------------------
         def Impact_parameter_resolution_theta_plot():
             fig, ax = plt.subplots()
@@ -548,8 +548,8 @@ for ftype in ['mu', 'e', 'pi']:
 #====================================================================
     #-------------------- Plots
     momentum_resolution_plots(data_dict, data_dict_p, ftype, {args.Nevts}, output_dir)
-    Impact_parameter_esolution_plots(data_dict, data_dict_p, ftype, {args.Nevts}, output_dir, 'd0')
-    Impact_parameter_esolution_plots(data_dict, data_dict_p, ftype, {args.Nevts}, output_dir, 'z0')
+    Impact_parameter_resolution_plots(data_dict, data_dict_p, ftype, {args.Nevts}, output_dir, 'd0')
+    Impact_parameter_resolution_plots(data_dict, data_dict_p, ftype, {args.Nevts}, output_dir, 'z0')
     efficiency_plot(data_dict, ftype, {args.Nevts}, output_dir)
 #====================================================================
 
