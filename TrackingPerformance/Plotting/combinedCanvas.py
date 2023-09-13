@@ -197,27 +197,27 @@ if __name__ == "__main__":
     theta_styles = set_styles_and_colors_theta
 
     input_files = [
-        #"/afs/cern.ch/user/g/gasadows/Output/final_1mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/final_2mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/final_3mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/final_4mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/final_5mic/p_dist.root"
-        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_04/final_3mic/p_dist.root',
-        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_04/final_5mic/p_dist.root',
-        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_04/final_7mic/p_dist.root'
+        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_1mic/p_dist.root",
+        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_2mic/p_dist.root",
+        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_3mic/p_dist.root",
+        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_4mic/p_dist.root",
+        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_5mic/p_dist.root"
+        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_3mic/p_dist.root',
+        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_5mic/p_dist.root',
+        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_7mic/p_dist.root'
     ]
     output_file = "combined_canvas_momentum"
     combine_canvases(input_files, output_file, momentum_styles, log_x=True, log_y=True)
 
     input_files = [
-        "/afs/cern.ch/user/g/gasadows/Output/final_1mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/final_2mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/final_3mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/final_4mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/final_5mic/t_dist.root"
-        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_04/final_3mic/t_dist.root',
-        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_04/final_5mic/t_dist.root',
-        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_04/final_7mic/t_dist.root'
+        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_1mic/t_dist.root",
+        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_2mic/t_dist.root",
+        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_3mic/t_dist.root",
+        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_4mic/t_dist.root",
+        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_5mic/t_dist.root"
+        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_3mic/t_dist.root',
+        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_5mic/t_dist.root',
+        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_7mic/t_dist.root'
     ]
     output_file = "combined_canvas_theta"
     combine_canvases(input_files, output_file, theta_styles, log_x=False, log_y=True)

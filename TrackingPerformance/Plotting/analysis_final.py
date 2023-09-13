@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import ROOT
 from math import ceil, floor
+import numpy as np
 
 ROOT.gStyle.SetOptFit(1111)
 # Define marker styles and colors
@@ -18,6 +19,7 @@ plot_height = 0.09  # Height of the plot within the canvas
 ParticleList = ["mu"]
 ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
 MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
+DetectorModel = ["FCCee_o1_v04"]
 Nevts = "10000"
 
 stackMomentumList = ["1", "10", "100"]
@@ -28,9 +30,9 @@ def pname(particle, theta, momentum):
 
 processList = {pname(particle, theta, momentum):{} for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
 #print(processList)
-outputDir = "Output/FCCee_o1_04/final_7mic"
+outputDir = f"Output/{DetectorModel[0]}/final_3mic"
 
-inputDir = "Output/FCCee_o1_04/stage2_7mic"
+inputDir = f"Output/{DetectorModel[0]}/stage2_3mic"
 
 residualList = ["d0", "z0", "phi0", "omega", "tanLambda", "phi", "theta"]
 specialList = ["pt", "p"]
@@ -61,6 +63,23 @@ unit_scale = {
     "sdelta_p": 1.0,
 }
 
+def filter_data_std(data, threshold, n_selections):
+    filtered_data = data
+    for _ in range(n_selections):
+        mean = np.mean(filtered_data)
+        std = np.std(filtered_data)
+        filtered_data = [d for d in filtered_data if abs(d - mean) < threshold * std]
+    return filtered_data
+
+def filter_data_mad(data, threshold, n_selections):
+    filtered_data = data
+    for _ in range(n_selections):
+        median = np.median(filtered_data)
+        mad = np.median(np.abs(filtered_data - median))
+        # Adjust the filtering based on median and MAD
+        filtered_data = [d for d in filtered_data if abs(d - median) < threshold * mad]
+    return filtered_data
+
 df = {}
 var_col_rp = {}
 # get column for each variable by running event loop once
@@ -84,12 +103,19 @@ for p in processList:
     h[p] = {}
     for v in varList:
         var_col[p][v] = sorted(var_col_rp[p][v].GetValue())
-        var_low[p][v] = var_col[p][v][ceil(0.05 * len(var_col[p][v]))]
-        var_high[p][v] = var_col[p][v][floor(0.95 * len(var_col[p][v]))]
+        # Adjust the filtering parameters here
+        threshold = 2.5  # Adjust the threshold value 
+        n_selections = 3  # Adjust the number of selections 
+        var_col[p][v] = filter_data_mad(var_col[p][v], threshold, n_selections)
+        
+        # Recalculate var_low and var_high after filtering
+        var_low[p][v] = min(var_col[p][v])
+        var_high[p][v] = max(var_col[p][v])
+        
         h[p][v] = (df[p]
                    .Filter(f"{v} > {var_low[p][v]} && {v} < {var_high[p][v]}")
                    .Histo1D((v, f"{p};{title[v]}", 200, var_low[p][v], var_high[p][v]), v)
-                   )
+                    )
 
 # after both runs do fits and make plots
 mean = {}
@@ -193,8 +219,6 @@ for v in varList:
    # Increase the size of the axis title text
     p_dist[v].GetXaxis().SetTitleSize(0.06)
     p_dist[v].GetYaxis().SetTitleSize(0.06)
-   # Add the text at the top right corner
-    latex_right.DrawLatexNDC(text_right_x, text_right_y, "~ 1000 events")
    # Add the text at the top left corner
     latex_left.DrawLatexNDC(text_left_x, text_left_y, "FCC-ee CLD")
    # Draw the legend
@@ -266,8 +290,6 @@ for v in varList:
    # Increase the size of the axis title text
     t_dist[v].GetXaxis().SetTitleSize(0.06)
     t_dist[v].GetYaxis().SetTitleSize(0.06)
-   # Add the text at the top right corner
-    latex_right.DrawLatexNDC(text_right_x, text_right_y, "~ 1000 events")
    # Add the text at the top left corner
     latex_left.DrawLatexNDC(text_left_x, text_left_y, "FCC-ee CLD")
    # Draw the legend

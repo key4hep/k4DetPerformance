@@ -1,14 +1,15 @@
 #ParticleList = ["mu", "e", "pi"]
 ParticleList = ["mu"]
 ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
-MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]   
+MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"] 
+DetectorModel = ["FCCee_o1_v04"]
 Nevts = "10000"
 
 processList = {f"{particle}_{theta}deg_{momentum}GeV_{Nevts}evts":{} for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
 #print(processList)
-outputDir = "Output/FCCee_o1_04/stage2_3mic"
+outputDir = f"Output/{DetectorModel[0]}/stage2_15mic"
 
-inputDir = "Output/FCCee_o1_04/stage1_3mic"
+inputDir = f"Output/{DetectorModel[0]}/stage1_15mic"
 
 nCPUS = 1
 

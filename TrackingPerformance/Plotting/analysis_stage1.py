@@ -2,14 +2,14 @@
 ParticleList = ["mu"]
 ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
 MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
-DetectorModel = [ "FCCee_o2_v02"]
+DetectorModel = ["FCCee_o1_v04"]
 Nevts = "10000"
 
-processList = {f"REC_{DetectorModel}_resVXD_7mic_{particle}_{theta}_deg_{momentum}_GeV_{Nevts}_evts_edm4hep":{"output":f"{particle}_{theta}deg_{momentum}GeV_{Nevts}evts"} for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
+processList = {f"REC_{DetectorModel[0]}_resVXD_15mic_{particle}_{theta}_deg_{momentum}_GeV_{Nevts}_evts_edm4hep":{"output":f"{particle}_{theta}deg_{momentum}GeV_{Nevts}evts"} for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
 #print(processList)
-outputDir = "Output/FCCee_o1_04/stage1_7mic"
+outputDir = f"Output/{DetectorModel[0]}/stage1_15mic"
 
-inputDir = "/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/FCCee_o1_v04/REC/resVXD_7mic"
+inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/{DetectorModel[0]}/REC/resVXD_15mic"
 
 #nCPUS = 6
 nCPUS = 1
