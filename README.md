@@ -1,71 +1,61 @@
 # FullSim
 
+## Setup
+
+source key4hep stable
+```
+source /cvmfs/sw.hsf.org/key4hep/setup.sh
+```
+source key4hep nightlies
+```
+source /cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh
+```
+
+```
+git clone https://github.com/key4hep/CLDConfig.git
+
+cd CLDConfig/CLDConfig/
+```
+
 ## Simulation
 
 ```
-source /cvmfs/sw.hsf.org/key4hep/setup.sh
-
-git clone https://github.com/iLCSoft/CLICPerformance.git
-
-cd CLICPerformance/fcceeConfig/
-```
-
-```
-ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml \
-            --inputFiles /eos/home-g/gasadows/genFiles/ee_Zmumu_91.hepmc \
+ddsim --compactFile $K4GEO/FCCee/compact/FCCee_o1_v04/FCCee_o1_v04.xml \
+            --inputFiles ee_Zmumu_91.hepmc \
             --numberOfEvents 10000 --steeringFile fcc_steer.py \
-            --outputFile /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root
+            --outputFile Zmumu_91_10000ev_SIM_edm4hep.root
 ```
 
 ### Simulation with ParticleGun
 
 ```
-ddsim --compactFile $LCGEO/FCCee/compact/FCCee_o2_v02/FCCee_o2_v02.xml \
-            --outputFile SIM_e_10GeV_90deg_edm4hep.root \
-            --steeringFile fcc_steer.py \
-            --enableGun \
-            --gun.particle e- \
-            --gun.energy "10*GeV" \
-            --gun.distribution uniform \
-            --gun.thetaMin "90*deg" \
-            --gun.thetaMax "90*deg" \
-            --numberOfEvents 10
+ddsim --compactFile $K4GEO/FCCee/compact/FCCee_o1_v04/FCCee_o1_v04.xml \
+      --outputFile outputSIM_edm4hep.root \
+      --steeringFile cld_steer.py \
+      --random.seed 0123456789 \
+      --enableGun \
+      --gun.particle mu- \
+      --gun.energy "1*GeV" \
+      --gun.distribution uniform \
+      --gun.thetaMin "89*deg" \
+      --gun.thetaMax "89*deg" \
+      --crossingAngleBoost 0 \
+      --numberOfEvents 10000
 ```
 
 
 > **Note**
 > 
-> simulation output file format must be **_edm4hep.root**
+> simulation output file format must be **_edm4hep.root** or **.slcio**
 
 ## Reconstruction
 
-fccRec_e4h_input.py file [here](https://github.com/gaswk/FullSim/blob/main/fccRec_e4h_input.py)
-
 ```
-k4run fccRec_e4h_input.py  --EventDataSvc.input /eos/home-g/gasadows/Output/Zmumu/SIM/Zmumu_91_10000ev_SIM_edm4hep.root \
-            --filename.PodioOutput /eos/user/g/gasadows/Output/Zmumu/REC/Zmumu_91_10000ev_REC.root \
-            -n 10000
-
-```
-
-## Analysis
-Clone this fork of [FCCAnalyses](https://github.com/gaswk/FCCAnalyses) and follow instructions here:
-
-```
-git clone https://github.com/gaswk/FCCAnalyses.git
-
-cd FCCAnalyses
-
-source ./setup.sh
-mkdir build install
-cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=../install
-make install -j4
-cd ..
+k4run CLDReconstruction.py --inputFiles outputSIM_edm4hep.root \
+            --outputBasename outputREC \
+            --VXDDigitiserResUV=0.001 \
+            --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/CLD_o2_v05/CLD_o2_v05.xml \
+            --trackingOnly \
+            -n 100
 ```
 
-analysis_Zmumu.py file [here](https://github.com/gaswk/FullSim/blob/main/analysis_examples/analysis_Zmumu.py)
-
-```
-fccanalysis run analysis_examples/analysis_Zmumu.py --output /eos/home-g/gasadows/Output/Zmumu/Analysis/Zmumu.root --files-list /eos/user/g/gasadows/Output/Zmumu/REC/Zmumu_91_10000ev_REC.root
-```
