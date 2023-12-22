@@ -18,10 +18,7 @@ ResVDX_UV_ = ['0.001']    #default ['0.003']
 
 # Directories and files for input and output
 InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/"
-SteeringFile = "/afs/cern.ch/user/g/gasadows/CLDConfig/CLDConfig/CLDReconstruction_VXDargs.py"
-#SteeringFile = "/afs/cern.ch/user/g/gasadows/CLDConfig/CLDConfig/CLDReconstruction.py"
 setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh"
-CLDdir = "/afs/cern.ch/user/g/gasadows/CLDConfig"
 EosDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/VXD_1mic"
 EosDir_aida = EosDir+"/aida_outputs"
 
@@ -64,7 +61,7 @@ for dect in DetectorModelList_ :
                 time.sleep(1)
                 seed = str(time.time()%1000)
                 arguments = f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{DetectorModelList_[0]}/{DetectorModelList_[0]}.xml --inputFiles " + inputFile + " --outputBasename  " + outputFileName+ f" --VXDDigitiserResUV={ResVDX_UV_[0]}" + " --trackingOnly" + " -n " + Nevts_
-                command = f"k4run {SteeringFile} " + arguments + " > /dev/null"
+                command = f"k4run CLDReconstruction.py " + arguments + " > /dev/null"
                 print(command)
 
                 # Set up job directories and files
@@ -77,7 +74,7 @@ for dect in DetectorModelList_ :
                 with open(bash_file, "w") as file:
                     file.write("#!/bin/bash \n")
                     file.write("source "+ setup + "\n")
-                    file.write("cp -rf " + CLDdir + " ." + "\n")
+                    file.write("git clone https://github.com/gaswk/CLDConfig.git"+"\n")
                     file.write("cd " + "CLDConfig/CLDConfig" + "\n")
                     file.write("pwd \n") 
                     #file.write("ls \n") 
