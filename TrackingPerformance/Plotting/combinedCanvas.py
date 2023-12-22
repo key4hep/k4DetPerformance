@@ -9,32 +9,34 @@ def set_styles_and_colors_momentum(input_file_idx):
     colors4 = [ROOT.kAzure+2, ROOT.kRed+2, ROOT.kMagenta-8, ROOT.kGreen-6, ROOT.kGray+2]
 
     style_map = {
-        0: (marker_styles_full, colors2),
-        1: (marker_styles_full, colors3),
-        2: (marker_styles_open, colors1),
-        3: (marker_styles_full, colors1),
-        4: (marker_styles_full, colors4)
+        #0: (marker_styles_full, colors2),
+        #1: (marker_styles_open, colors1),
+        #2: (marker_styles_full, colors3),
+        #3: (marker_styles_full, colors1),
+        0: (marker_styles_open, colors1),
+        1: (marker_styles_full, colors1),
+        2: (marker_styles_full, colors2),
     }
     
     return style_map.get(input_file_idx, (marker_styles_full, colors1))
 
 def set_styles_and_colors_theta(input_file_idx):
     marker_styles_full = [ROOT.kFullCircle, ROOT.kFullSquare, ROOT.kFullTriangleUp]
+    marker_styles_full2 = [ ROOT.kFullSquare, ROOT.kFullTriangleUp]
     marker_styles_open = [ROOT.kOpenCircle, ROOT.kOpenSquare, ROOT.kOpenTriangleUp]
     colors1 = [ROOT.kBlack, ROOT.kRed,ROOT.kBlue]
-    colors2 = [ROOT.kGray+2, ROOT.kMagenta+2,ROOT.kCyan]
-    colors3 = [ROOT.kGray+1, ROOT.kMagenta,ROOT.kCyan+2]
+    colors2 = [ROOT.kGray+1, ROOT.kMagenta,ROOT.kCyan]
+    colors3 = [ROOT.kGray+2, ROOT.kMagenta+2,ROOT.kCyan+2]
     colors4 = [ROOT.kGray, ROOT.kRed+2, ROOT.kBlue+2]
 
     style_map = {
-        0: (marker_styles_full, colors2),
-        1: (marker_styles_full, colors3),
-        2: (marker_styles_open, colors1),
-        3: (marker_styles_full, colors1),
-        4: (marker_styles_full, colors4)
         #0: (marker_styles_open, colors1),
         #1: (marker_styles_full, colors1),
         #2: (marker_styles_full, colors2),
+        0: (marker_styles_full, colors3),
+        1: (marker_styles_open, colors1),
+        2: (marker_styles_full, colors1),
+        3: (marker_styles_full, colors2),
     }
     
     return style_map.get(input_file_idx, (marker_styles_full, colors1))
@@ -53,12 +55,41 @@ def set_y_axis_title(canvas_name):
     }
     return y_axis_titles.get(canvas_name, "Some Default Y-axis Title")
 
+def set_y_axis_range_theta(canvas_name):
+    y_axis_range = {
+        "Canvas_delta_d0": (0.5, 10**4),
+        "Canvas_delta_z0": (0.5, 10**4),
+        "Canvas_delta_phi0": (10**-5, 1),
+        "Canvas_delta_omega": (10**-8, 10**-2),
+        "Canvas_delta_tanLambda": (10**-5, 10),
+        "Canvas_delta_phi": (10**-2, 10**3),
+        "Canvas_delta_theta": (10**-2, 10**3),
+        "Canvas_sdelta_pt": (10**-5, 10**2),
+        "Canvas_sdelta_p": (10**-5, 10**2),
+    }
+    return y_axis_range.get(canvas_name, "Some Default Y-axis range")
+
+def set_y_axis_range_momentum(canvas_name):
+    y_axis_range = {
+        "Canvas_delta_d0": (0.5, 10**3),
+        "Canvas_delta_z0": (0.5, 10**4),
+        "Canvas_delta_phi0": (10**-5, 10**-1),
+        "Canvas_delta_omega": (10**-8, 10**-3),
+        "Canvas_delta_tanLambda": (10**-5, 10),
+        "Canvas_delta_phi": (10**-2, 10**2),
+        "Canvas_delta_theta": (10**-2, 10),
+        "Canvas_sdelta_pt": (10**-5, 10),
+        "Canvas_sdelta_p": (10**-5, 1),
+    }
+    return y_axis_range.get(canvas_name, "Some Default Y-axis range")
+
 def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, log_y=False):
     ROOT.gROOT.SetBatch(True)
-    custom_texts = [", VXD res 1 #mum", ", VXD res 2 #mum", ", VXD res 3 #mum", ", VXD res 4 #mum", ", VXD res 5 #mum"]
+    custom_texts = [", VXD res 1 #mum", ", VXD res 3 #mum", ", VXD res 5 #mum", ", VXD res 7 #mum"]
     #custom_texts = [", VDX res 3 #mum", ", VDX res 5 #mum", ", VDX res 7 #mum"]
+    #custom_texts = [", o2_v05", ", o3_v01"]
+    #custom_texts = [", IT res U 5,V 7 #mum", ", IT res U 7,V 9 #mum", ", IT res U 9,V 11 #mum"]
 
-    #output_root_file = ROOT.TFile(output_file, "recreate")
     output_root_file = ROOT.TFile(output_file + ".root", "recreate")
     output_pdf_file = output_file + ".pdf"
     output_pdf_canvas = ROOT.TCanvas("combined_canvas", "Combined Canvas", 800, 800)
@@ -70,10 +101,16 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
         "Canvas_sdelta_pt", "Canvas_sdelta_p"
     ]:
         superposed_multigraph = ROOT.TMultiGraph()
-        output_legend = ROOT.TLegend(0.90, 0.45, 1.20, 0.90)
+       # Define different legend position for theta and momentum plots
+        if marker_styles_func == theta_styles:
+            output_legend = ROOT.TLegend(0.5, 0.60, 1.15, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad 
+        elif marker_styles_func == momentum_styles:
+            output_legend = ROOT.TLegend(0.65, 0.55, 1.30, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad 
         output_legend.SetTextFont(62)
+        output_legend.SetTextSize(0.03)
         output_legend.SetFillStyle(0)
         output_legend.SetBorderSize(0)
+        output_legend.SetMargin(0.1)    # distance between marker and text
         output_legend.SetHeader("Single #mu^{-}")
 
         for input_file_idx, input_file in enumerate(input_files):
@@ -125,6 +162,7 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
                             new_entry.SetFillStyle(0)
                             new_entry.SetMarkerStyle(marker_styles[marker_idx])
                             new_entry.SetMarkerColor(marker_colors[marker_idx])
+                            new_entry.SetMarkerSize(1.5) 
                             legend_label = f"{new_entry.GetLabel()}{custom_texts[input_file_idx]}\n"
                             output_legend.AddEntry(new_entry, legend_label, "P")
 
@@ -141,6 +179,11 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
         # Set the position of the right and top axes
         pad.SetTickx(1)
         pad.SetTicky(1)
+        # Set canvas margins
+        output_canvas.SetRightMargin(0.02)
+        output_canvas.SetLeftMargin(0.185)
+        output_canvas.SetTopMargin(0.06)
+        output_canvas.SetBottomMargin(0.15)
         
         # Draw the superposed TMultiGraph to the output canvas
         superposed_multigraph.Draw("APE" if output_canvas.GetListOfPrimitives().GetSize() == 0 else "APEsame")
@@ -150,12 +193,20 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
             superposed_multigraph.GetXaxis().SetTitle("momentum [GeV]")
         elif marker_styles_func == theta_styles:
             superposed_multigraph.GetXaxis().SetTitle("#theta [deg]")
-        superposed_multigraph.GetXaxis().SetTitleSize(0.05)
+        superposed_multigraph.GetXaxis().SetTitleSize(0.06)
         
         # Set the Y-axis title based on the input canvas name
         y_axis_title = set_y_axis_title(canvas_name)
         superposed_multigraph.GetYaxis().SetTitle(y_axis_title)
-        superposed_multigraph.GetYaxis().SetTitleSize(0.05)
+        superposed_multigraph.GetYaxis().SetTitleSize(0.06)
+
+        # Set Y-axis range
+        if marker_styles_func == theta_styles:
+            y_axis_range = set_y_axis_range_theta(canvas_name)
+            superposed_multigraph.GetYaxis().SetRangeUser(y_axis_range[0],y_axis_range[1])
+        elif marker_styles_func == momentum_styles:
+            y_axis_range = set_y_axis_range_momentum(canvas_name)
+            superposed_multigraph.GetYaxis().SetRangeUser(y_axis_range[0],y_axis_range[1])
         
         # Set bigger axis scale numbers
         superposed_multigraph.GetXaxis().SetLabelSize(0.05)
@@ -170,8 +221,8 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
         output_legend.Draw()
         
         # Add text on the top left above the graph
-        text_left_x = 0.10
-        text_left_y = 0.91
+        text_left_x = 0.19
+        text_left_y = 0.95
         latex_left = ROOT.TLatex()
         latex_left.SetNDC()
         latex_left.SetTextFont(42)
@@ -186,7 +237,7 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
         output_pdf_canvas.Clear()
         superposed_multigraph.Draw("APE" if output_canvas.GetListOfPrimitives().GetSize() == 0 else "APEsame")
         output_legend.Draw()
-        latex_left.DrawLatexNDC(text_left_x, text_left_y, "FCC-ee CLD")
+        latex_left.DrawLatexNDC(text_left_x, text_left_y, "FCC-ee CLD (o2_v05)")
         output_canvas.Print(output_pdf_file, "pdf")
 
     output_pdf_canvas.Print(output_pdf_file + "]")
@@ -197,27 +248,28 @@ if __name__ == "__main__":
     theta_styles = set_styles_and_colors_theta
 
     input_files = [
-        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_1mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_2mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_3mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_4mic/p_dist.root",
-        #"/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_5mic/p_dist.root"
-        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_3mic/p_dist.root',
-        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_5mic/p_dist.root',
-        '/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_7mic/p_dist.root'
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_VXD_3mic_IT_5_7mic/p_dist.root",
+        #'/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_3mic/p_dist.root',
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_VXD_3mic_IT_9_11mic/p_dist.root",
+        #'/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_1mic/p_dist.root',
+        #'/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_3mic/p_dist.root',
+        #'/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_5mic/p_dist.root',
+        #'/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_7mic/p_dist.root',
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/FCCee_o1_v04/final_3mic/p_dist.root",
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/FCCee_o1_v04/final_7mic/p_dist.root",
+        #'/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/FCCee_o1_v04/final_5mic/p_dist.root',
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/final/VXD_3mic/p_dist.root",
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/final_VXD_3mic/p_dist.root",
     ]
     output_file = "combined_canvas_momentum"
-    combine_canvases(input_files, output_file, momentum_styles, log_x=True, log_y=True)
+    #combine_canvases(input_files, output_file, momentum_styles, log_x=True, log_y=True)
 
     input_files = [
-        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_1mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_2mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_3mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_4mic/t_dist.root",
-        "/afs/cern.ch/user/g/gasadows/Output/FCCee_o2_v02/final_5mic/t_dist.root"
-        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_3mic/t_dist.root',
-        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_5mic/t_dist.root',
-        #'/afs/cern.ch/user/g/gasadows/Output/FCCee_o1_v04/final_7mic/t_dist.root'
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/final/VXD_1mic/t_dist.root",
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/final/VXD_3mic/t_dist.root",
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/VXD_5mic/plots/t_dist.root",
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/VXD_7mic/plots/t_dist.root",
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/final_VXD_3mic/t_dist.root",
     ]
     output_file = "combined_canvas_theta"
     combine_canvases(input_files, output_file, theta_styles, log_x=False, log_y=True)
