@@ -14,10 +14,12 @@ plot_margin_bottom = 0.15  # Margin from the bottom of the canvas
 plot_width = 0.09  # Width of the plot within the canvas
 plot_height = 0.09  # Height of the plot within the canvas
 
+# Lists of parameters
 ParticleList = ["mu"]#, "e", "pi"]
 ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
+#MomentumList = ["1", "10", "100"]
 MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
-DetectorModel = ["CLD_o2_v05"]  #["FCCee_o1_v04"]  ["CLD_o2_v05"]  ["CLD_o3_v01"]
+DetectorModel = ["CLD_o3_v01"]  #["FCCee_o1_v04"]  ["CLD_o2_v05"]  ["CLD_o3_v01"]
 Nevts = "10000"
 
 stackMomentumList = ["1", "10", "100"]
@@ -29,9 +31,9 @@ def pname(particle, theta, momentum):
 
 processList = {pname(particle, theta, momentum):{} for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
 
-outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/VXD_1mic/plots"
+outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/plots"
 
-inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/VXD_1mic/ROOTFiles"
+inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/"
 
 # Create outputDir if it does not exist
 if not os.path.exists(outputDir):

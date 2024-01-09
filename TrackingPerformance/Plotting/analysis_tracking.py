@@ -1,7 +1,9 @@
 # Lists of parameters
 ParticleList = ["mu"]#, "e", "pi"]
-ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
-MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
+#ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
+ThetaList = ["89"]
+MomentumList = ["1", "10", "100"]
+#MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
 DetectorModel = ["CLD_o2_v05"]  #["FCCee_o1_v04"]  ["CLD_o2_v05"]  ["CLD_o3_v01"]
 Nevts = "10000"
 
@@ -11,8 +13,8 @@ processList = {
      for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
 
 # Output and input directories
-outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/VXD_1mic/ROOTFiles"
-inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/REC/VXD_1mic"
+outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/"
+inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/REC/mu"
 
 # Optional: ncpus, default is 4, -1 uses all cores available
 nCPUS = -1

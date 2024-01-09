@@ -1,46 +1,5 @@
 import ROOT
 
-def set_styles_and_colors_momentum(input_file_idx):
-    marker_styles_full = [ROOT.kFullTriangleUp, ROOT.kFullSquare, ROOT.kFullDiamond, ROOT.kFullCross, ROOT.kFullCircle]
-    marker_styles_open = [ROOT.kOpenTriangleUp, ROOT.kOpenSquare, ROOT.kOpenDiamond, ROOT.kOpenCross, ROOT.kOpenCircle]
-    colors1 = [ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kGreen, ROOT.kBlack]
-    colors2 = [ROOT.kCyan, ROOT.kOrange+1, ROOT.kMagenta+3, ROOT.kGreen+3, ROOT.kGray]
-    colors3 = [ROOT.kAzure+1, ROOT.kOrange+8, ROOT.kMagenta+2, ROOT.kGreen+2, ROOT.kGray+1]
-    colors4 = [ROOT.kAzure+2, ROOT.kRed+2, ROOT.kMagenta-8, ROOT.kGreen-6, ROOT.kGray+2]
-
-    style_map = {
-        #0: (marker_styles_full, colors2),
-        #1: (marker_styles_open, colors1),
-        #2: (marker_styles_full, colors3),
-        #3: (marker_styles_full, colors1),
-        0: (marker_styles_open, colors1),
-        1: (marker_styles_full, colors1),
-        2: (marker_styles_full, colors2),
-    }
-    
-    return style_map.get(input_file_idx, (marker_styles_full, colors1))
-
-def set_styles_and_colors_theta(input_file_idx):
-    marker_styles_full = [ROOT.kFullCircle, ROOT.kFullSquare, ROOT.kFullTriangleUp]
-    marker_styles_full2 = [ ROOT.kFullSquare, ROOT.kFullTriangleUp]
-    marker_styles_open = [ROOT.kOpenCircle, ROOT.kOpenSquare, ROOT.kOpenTriangleUp]
-    colors1 = [ROOT.kBlack, ROOT.kRed,ROOT.kBlue]
-    colors2 = [ROOT.kGray+1, ROOT.kMagenta,ROOT.kCyan]
-    colors3 = [ROOT.kGray+2, ROOT.kMagenta+2,ROOT.kCyan+2]
-    colors4 = [ROOT.kGray, ROOT.kRed+2, ROOT.kBlue+2]
-
-    style_map = {
-        #0: (marker_styles_open, colors1),
-        #1: (marker_styles_full, colors1),
-        #2: (marker_styles_full, colors2),
-        0: (marker_styles_full, colors3),
-        1: (marker_styles_open, colors1),
-        2: (marker_styles_full, colors1),
-        3: (marker_styles_full, colors2),
-    }
-    
-    return style_map.get(input_file_idx, (marker_styles_full, colors1))
-
 def set_y_axis_title(canvas_name):
     y_axis_titles = {
         "Canvas_delta_d0": "#sigma(#Deltad_{0}) [#mum]",
@@ -83,12 +42,8 @@ def set_y_axis_range_momentum(canvas_name):
     }
     return y_axis_range.get(canvas_name, "Some Default Y-axis range")
 
-def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, log_y=False):
+def combine_canvases(input_files, output_file, marker_styles_func, legend_text, log_x=False, log_y=False):
     ROOT.gROOT.SetBatch(True)
-    custom_texts = [", VXD res 1 #mum", ", VXD res 3 #mum", ", VXD res 5 #mum", ", VXD res 7 #mum"]
-    #custom_texts = [", VDX res 3 #mum", ", VDX res 5 #mum", ", VDX res 7 #mum"]
-    #custom_texts = [", o2_v05", ", o3_v01"]
-    #custom_texts = [", IT res U 5,V 7 #mum", ", IT res U 7,V 9 #mum", ", IT res U 9,V 11 #mum"]
 
     output_root_file = ROOT.TFile(output_file + ".root", "recreate")
     output_pdf_file = output_file + ".pdf"
@@ -102,10 +57,10 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
     ]:
         superposed_multigraph = ROOT.TMultiGraph()
        # Define different legend position for theta and momentum plots
-        if marker_styles_func == theta_styles:
-            output_legend = ROOT.TLegend(0.5, 0.60, 1.15, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad 
-        elif marker_styles_func == momentum_styles:
+        if marker_styles_func == momentum_styles:
             output_legend = ROOT.TLegend(0.65, 0.55, 1.30, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad 
+        elif marker_styles_func == theta_styles:
+            output_legend = ROOT.TLegend(0.5, 0.60, 1.15, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad     
         output_legend.SetTextFont(62)
         output_legend.SetTextSize(0.03)
         output_legend.SetFillStyle(0)
@@ -163,7 +118,7 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
                             new_entry.SetMarkerStyle(marker_styles[marker_idx])
                             new_entry.SetMarkerColor(marker_colors[marker_idx])
                             new_entry.SetMarkerSize(1.5) 
-                            legend_label = f"{new_entry.GetLabel()}{custom_texts[input_file_idx]}\n"
+                            legend_label = f"{new_entry.GetLabel()}{legend_text[input_file_idx]}\n"
                             output_legend.AddEntry(new_entry, legend_label, "P")
 
         output_canvas = ROOT.TCanvas(canvas_name, "Superposed Canvas", 800, 800)
@@ -243,9 +198,52 @@ def combine_canvases(input_files, output_file, marker_styles_func, log_x=False, 
     output_pdf_canvas.Print(output_pdf_file + "]")
     output_root_file.Close()
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
+
+    def set_styles_and_colors_momentum(input_file_idx):
+        marker_styles_full = [ROOT.kFullTriangleUp, ROOT.kFullSquare, ROOT.kFullDiamond, ROOT.kFullCross, ROOT.kFullCircle]
+        marker_styles_open = [ROOT.kOpenTriangleUp, ROOT.kOpenSquare, ROOT.kOpenDiamond, ROOT.kOpenCross, ROOT.kOpenCircle]
+        colors1 = [ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kGreen, ROOT.kBlack]
+        colors2 = [ROOT.kCyan, ROOT.kOrange+1, ROOT.kMagenta+3, ROOT.kGreen+3, ROOT.kGray]
+        colors3 = [ROOT.kAzure+1, ROOT.kOrange+8, ROOT.kMagenta+2, ROOT.kGreen+2, ROOT.kGray+1]
+        colors4 = [ROOT.kAzure+2, ROOT.kRed+2, ROOT.kMagenta-8, ROOT.kGreen-6, ROOT.kGray+2]
+
+        style_map = {
+            #0: (marker_styles_full, colors2),
+            #1: (marker_styles_open, colors1),
+            #2: (marker_styles_full, colors3),
+            #3: (marker_styles_full, colors1),
+            0: (marker_styles_open, colors1),
+            1: (marker_styles_full, colors1),
+            2: (marker_styles_full, colors2),
+        }
+        
+        return style_map.get(input_file_idx, (marker_styles_full, colors1))
     momentum_styles = set_styles_and_colors_momentum
+
+    def set_styles_and_colors_theta(input_file_idx):
+        marker_styles_full = [ROOT.kFullCircle, ROOT.kFullSquare, ROOT.kFullTriangleUp]
+        marker_styles_full2 = [ ROOT.kFullSquare, ROOT.kFullTriangleUp]
+        marker_styles_open = [ROOT.kOpenCircle, ROOT.kOpenSquare, ROOT.kOpenTriangleUp]
+        colors1 = [ROOT.kBlack, ROOT.kRed,ROOT.kBlue]
+        colors2 = [ROOT.kGray+1, ROOT.kMagenta,ROOT.kCyan]
+        colors3 = [ROOT.kGray+2, ROOT.kMagenta+2,ROOT.kCyan+2]
+        colors4 = [ROOT.kGray, ROOT.kRed+2, ROOT.kBlue+2]
+
+        style_map = {
+            0: (marker_styles_open, colors1),
+            1: (marker_styles_full, colors1),
+            #2: (marker_styles_full, colors2),
+            #0: (marker_styles_full, colors3),
+            #1: (marker_styles_open, colors1),
+            #2: (marker_styles_full, colors1),
+            #3: (marker_styles_full, colors2),
+        }
+        
+        return style_map.get(input_file_idx, (marker_styles_full, colors1))
     theta_styles = set_styles_and_colors_theta
+#_________________________________________________________________
+# Traking performances as a function of Tranverse Momentum
 
     input_files = [
         #"/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/CLD_o2_v05/final_VXD_3mic_IT_5_7mic/p_dist.root",
@@ -259,17 +257,24 @@ if __name__ == "__main__":
         #"/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/FCCee_o1_v04/final_7mic/p_dist.root",
         #'/eos/user/g/gasadows/Output/TrackingPerformance/LCIO/analysis/Output/FCCee_o1_v04/final_5mic/p_dist.root',
         "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/final/VXD_3mic/p_dist.root",
-        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/final_VXD_3mic/p_dist.root",
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/plots/p_dist.root",
     ]
     output_file = "combined_canvas_momentum"
-    #combine_canvases(input_files, output_file, momentum_styles, log_x=True, log_y=True)
+    legend_text = [", o2_v05", ", o3_v01"]
+    combine_canvases(input_files, output_file, momentum_styles, legend_text, log_x=True, log_y=True)
+
+#_________________________________________________________________
+# Traking performances as a function of Theta
 
     input_files = [
-        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/final/VXD_1mic/t_dist.root",
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/VXD_1mic/plots/t_dist.root",
         "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/final/VXD_3mic/t_dist.root",
-        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/VXD_5mic/plots/t_dist.root",
-        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/VXD_7mic/plots/t_dist.root",
-        #"/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/final_VXD_3mic/t_dist.root",
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/VXD_5mic/plots/t_dist.root",
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/VXD_7mic/plots/t_dist.root",
+        "/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/plots/t_dist.root",
+        #"/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05_old_beamPipe/analysis/VXD_3mic/plots/t_dist.root",
     ]
     output_file = "combined_canvas_theta"
-    combine_canvases(input_files, output_file, theta_styles, log_x=False, log_y=True)
+    #legend_text = [", VDX res 3 #mum", ", VDX res 5 #mum", ", VDX res 7 #mum"]
+    legend_text = [", o2_v05", ", o3_v01"]
+    combine_canvases(input_files, output_file, theta_styles, legend_text, log_x=False, log_y=True)
