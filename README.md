@@ -20,7 +20,7 @@ cd CLDConfig/CLDConfig/
 ## Simulation
 
 ```
-ddsim --compactFile $K4GEO/FCCee/compact/FCCee_o1_v04/FCCee_o1_v04.xml \
+ddsim --compactFile $K4GEO/FCCee/CLD/compact/FCCee_o1_v04/FCCee_o1_v04.xml \
             --inputFiles ee_Zmumu_91.hepmc \
             --numberOfEvents 10000 --steeringFile fcc_steer.py \
             --outputFile Zmumu_91_10000ev_SIM_edm4hep.root
@@ -29,7 +29,7 @@ ddsim --compactFile $K4GEO/FCCee/compact/FCCee_o1_v04/FCCee_o1_v04.xml \
 ### Simulation with ParticleGun
 
 ```
-ddsim --compactFile $K4GEO/FCCee/compact/FCCee_o1_v04/FCCee_o1_v04.xml \
+ddsim --compactFile $K4GEO/FCCee/CLD/compact/FCCee_o1_v04/FCCee_o1_v04.xml \
       --outputFile outputSIM_edm4hep.root \
       --steeringFile cld_steer.py \
       --random.seed 0123456789 \
