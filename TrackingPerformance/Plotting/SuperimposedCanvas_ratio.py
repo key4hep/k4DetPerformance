@@ -158,7 +158,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
 
             file_path_a = os.path.join(folder_a, file_name)
             file_path_b = os.path.join(folder_b, file_name)
-            # When calling process_canvas for each file
+            # Calling process_canvas for each file
             file_identifier_a = extract_file_identifier(file_path_a, canvas_style)
             graphs_a = process_canvas(folder_a + file_name, canvas_name, 'a', file_identifier_a, canvas_style)  
 
@@ -178,7 +178,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
             pad1.SetTopMargin(0.035)
             pad1.Draw()
             pad1.cd()
-            # Set the position of the right and top axes
+            # Set right and top axes
             pad1.SetTickx(1)
             pad1.SetTicky(1)
 
@@ -214,7 +214,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
             
             pad1.Update()
 
-            # Adjust to log scale if needed
+            # Log scale for momentum X axis
             pad1.SetLogy()
             if canvas_style == "momentum": pad1.SetLogx()
 
@@ -232,10 +232,8 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
             pad2.Draw()
             pad2.cd()
             
-            # Example logic for calculating and drawing ratio
-            # This is a placeholder and should be replaced with actual calculation
+            # Calculating and drawing ratio
             if graphs_a and graphs_b:
-                # Assume both graphs have the same number of points here for simplicity
                 n_points = graphs_a[0].GetN()
                 x = graphs_a[0].GetX()
                 y_ratio = ROOT.TGraphErrors(n_points)  # Create an empty TGraphErrors for ratio
@@ -255,7 +253,6 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
                     y_ratio.SetMarkerStyle(marker_styles[i % len(marker_styles)])
                     y_ratio.SetMarkerColor(marker_colors[0])
                     y_ratio.SetLineColor(marker_colors[0])
-                    # Calculate uncertainties for ratio here, if applicable
 
                 y_ratio.GetXaxis().SetTitleSize(0.18) 
                 y_ratio.GetXaxis().SetLabelSize(0.15)
@@ -266,20 +263,18 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
                 ratio_graphs[canvas_name].append(y_ratio)
                 pad2.Update()
 
-                # After you have drawn your ratio_graph and updated pad2
                 # Determine the x-axis range of your ratio plot
                 x_min = y_ratio.GetXaxis().GetXmin()
                 x_max = y_ratio.GetXaxis().GetXmax()
                 # Create a TLine at Y = 1 spanning the width of the x-axis range
                 line = ROOT.TLine(x_min, 1, x_max, 1)
-                line.SetLineColor(ROOT.kBlack)  # Set line color, e.g., red
+                line.SetLineColor(ROOT.kBlack) 
                 line.SetLineStyle(2)  # Set line style to dotted
                 # Draw the line on the same pad as your ratio plot
                 line.Draw("same")
                 pad2.Update()
 
                 # Create a new combined legend
-                # Example of how you would call this in your loop
                 file_identifier_a = extract_file_identifier(folder_a + file_name, canvas_style)
                 file_identifier_b = extract_file_identifier(folder_b + file_name, canvas_style)
 
@@ -329,13 +324,13 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
 
         # Top pads
         top_pad = combined_canvas.cd(1)
-        top_pad.SetPad(0.0, 0.3, 1.0, 1.0)  # Adjust these parameters as needed for layout
+        top_pad.SetPad(0.0, 0.3, 1.0, 1.0)  
         top_pad.SetRightMargin(0.02)
         top_pad.SetTopMargin(0.035)
         top_pad.SetBottomMargin(0.0001)  
         top_pad.SetLeftMargin(0.2)
 
-        # Set the position of the right and top axes
+        # Set right and top axes
         top_pad.SetTickx(1)
         top_pad.SetTicky(1)
         top_pad.cd()
@@ -357,7 +352,6 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
         combined_legend.SetMargin(0.1)    # distance between marker and text
         combined_legend.SetHeader("Single #mu^{-}")
 
-        # Example: Drawing the last legend from each list
         for legend in legends_from_graphs:
             for entry in legend.GetListOfPrimitives()[1:]:
                 # Check if the entry is a TLegendEntry and not the title
@@ -372,7 +366,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
 
         bottom_pad = combined_canvas.cd(2)
         bottom_pad.SetPad(0, 0.0, 1, 0.3)
-        bottom_pad.SetTopMargin(0.0)  # Set a top margin to visually separate pads
+        bottom_pad.SetTopMargin(0.0) 
         bottom_pad.SetBottomMargin(0.5)  # Increase bottom margin for axis labels
         bottom_pad.SetLeftMargin(0.2)
         bottom_pad.SetRightMargin(0.02)
@@ -388,7 +382,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
         x_max = y_ratio.GetXaxis().GetXmax()
         # Create a TLine at Y = 1 spanning the width of the x-axis range
         line = ROOT.TLine(x_min, 1, x_max, 1)
-        line.SetLineColor(ROOT.kBlack)  # Set line color, e.g., red
+        line.SetLineColor(ROOT.kBlack) 
         line.SetLineStyle(2)  # Set line style to dotted
         # Draw the line on the same pad as your ratio plot
         line.Draw("same")
