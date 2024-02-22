@@ -125,7 +125,7 @@ def extract_file_identifier(file_name, canvas_style):
         else:
             raise ValueError(f"Unable to extract file identifier from {file_name}")
     elif canvas_style == 'momentum':
-        # Processing 'momentum' style with specific endings
+        # Processing 'momentum' style 
         if '10.root' in file_name:
             return '10'
         elif '30.root' in file_name:
@@ -141,7 +141,7 @@ def extract_file_identifier(file_name, canvas_style):
     else:
         raise ValueError(f"Invalid canvas style: {canvas_style}")
 
-def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_b, file_names, canvas_style, legend_txt):
+def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_b, file_names, canvas_style, legend_txt, top_left_txt):
     # Open the output ROOT file
     output_root_file = ROOT.TFile(output_file_path, "RECREATE")
     output_pdf_canvas = ROOT.TCanvas("combined_canvas_ratio", "Combined Canvas Ratio", 600, 600)
@@ -151,7 +151,10 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
     graphs_from_a = {cn: [] for cn in canvas_names}
     graphs_from_b = {cn: [] for cn in canvas_names}
     ratio_graphs = {cn: [] for cn in canvas_names}
-    
+
+    global_min_ratio, global_max_ratio = 10, 0
+    y_axis_limits = {canvas_name: {'min': float('inf'), 'max': -float('inf')} for canvas_name in canvas_names}
+
     for canvas_name in canvas_names:
         legends_from_graphs = []
         for file_name in file_names:
@@ -175,7 +178,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
             pad1.SetBottomMargin(0.0001)  
             pad1.SetLeftMargin(0.2)
             pad1.SetRightMargin(0.02)
-            pad1.SetTopMargin(0.035)
+            pad1.SetTopMargin(0.07)
             pad1.Draw()
             pad1.cd()
             # Set right and top axes
@@ -245,6 +248,12 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
                     eyb = graphs_b[0].GetEY()[i]
                     ratio = ya / yb if yb != 0 else 0
                     error = ratio * ((eya/ya)**2 + (eyb/yb)**2)**0.5 if ya != 0 and yb != 0 else 0
+
+                    # Update global min and max based on current ratios
+                    if ratio < global_min_ratio:
+                        global_min_ratio = ratio
+                    if ratio > global_max_ratio:
+                        global_max_ratio = ratio
                     
                     y_ratio.SetPoint(i, xa, ratio)
                     y_ratio.SetPointError(i, 0, error)
@@ -254,13 +263,17 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
                     y_ratio.SetMarkerColor(marker_colors[0])
                     y_ratio.SetLineColor(marker_colors[0])
 
+                    y_axis_limits[canvas_name]['min'] = min(y_axis_limits[canvas_name]['min'], ratio)
+                    y_axis_limits[canvas_name]['max'] = max(y_axis_limits[canvas_name]['max'], ratio)
+
                 y_ratio.GetXaxis().SetTitleSize(0.18) 
                 y_ratio.GetXaxis().SetLabelSize(0.15)
                 y_ratio.GetXaxis().SetTickSize(0.11)
                 y_ratio.GetYaxis().SetLabelSize(0.08)
                 y_ratio.SetTitle(";#theta [deg];") if canvas_style == "theta" else y_ratio.SetTitle(";momentum [GeV];")
                 y_ratio.Draw("AP")
-                ratio_graphs[canvas_name].append(y_ratio)
+                ratio_graphs[canvas_name].append(y_ratio)          
+                pad2.SetTicky(1)    # Set right axis
                 pad2.Update()
 
                 # Determine the x-axis range of your ratio plot
@@ -307,6 +320,16 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
                 pad1.cd()  # Switch to the pad where you want the legend to appear
                 output_legend.Draw()
                 pad1.Update()
+            
+            # Add text on the top left above the graph
+            pad1.cd()
+            text_left_x = 0.21
+            text_left_y = 0.94
+            latex_left = ROOT.TLatex()
+            latex_left.SetNDC()
+            latex_left.SetTextFont(42)
+            latex_left.SetTextSize(0.065)
+            latex_left.DrawLatexNDC(text_left_x, text_left_y, top_left_txt)
 
             # Write the canvas to the output file
             output_root_file.cd()
@@ -326,7 +349,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
         top_pad = combined_canvas.cd(1)
         top_pad.SetPad(0.0, 0.3, 1.0, 1.0)  
         top_pad.SetRightMargin(0.02)
-        top_pad.SetTopMargin(0.035)
+        top_pad.SetTopMargin(0.07) 
         top_pad.SetBottomMargin(0.0001)  
         top_pad.SetLeftMargin(0.2)
 
@@ -344,7 +367,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
         top_pad.SetLogy()
         if canvas_style == "momentum": top_pad.SetLogx()
 
-        combined_legend = ROOT.TLegend(0.65, 0.5, 0.9, 0.93)
+        combined_legend = ROOT.TLegend(0.65, 0.5, 0.9, 0.91)
         combined_legend.SetTextFont(62)
         combined_legend.SetTextSize(0.04)
         combined_legend.SetFillStyle(0)
@@ -376,6 +399,12 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
         first_graph = True
         for y_ratio in ratio_graphs[canvas_name]:
             draw_option = "APE" if first_graph else "PE same"
+            y_min = y_axis_limits[canvas_name]['min']
+            y_max = y_axis_limits[canvas_name]['max']
+            buffer = (y_max - y_min) * 0.1  
+            y_min_adjusted = y_min - buffer
+            y_max_adjusted = y_max + buffer
+            y_ratio.GetYaxis().SetRangeUser(y_min_adjusted, y_max_adjusted)
             y_ratio.Draw(draw_option)
             first_graph = False
         x_min = y_ratio.GetXaxis().GetXmin()
@@ -386,7 +415,18 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
         line.SetLineStyle(2)  # Set line style to dotted
         # Draw the line on the same pad as your ratio plot
         line.Draw("same")
+        bottom_pad.SetTicky(1)    # Set right axis
         bottom_pad.Update()
+
+        # Add text on the top left above the graph
+        top_pad.cd()
+        text_left_x = 0.21
+        text_left_y = 0.94
+        latex_left = ROOT.TLatex()
+        latex_left.SetNDC()
+        latex_left.SetTextFont(42)
+        latex_left.SetTextSize(0.065)
+        latex_left.DrawLatexNDC(text_left_x, text_left_y, top_left_txt)
 
         # Write the canvas to the output file
         output_root_file.cd()
@@ -407,6 +447,7 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
 folder_a = '/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/mu/plots/'
 folder_b = '/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/plots/'
 legend_txt =  [", CLD_o2_v5" , ", CLD_o3_v1"  ]
+top_left_txt = "FCC-ee"
 
 canvas_names = [
     "Canvas_delta_d0", "Canvas_delta_z0", "Canvas_delta_phi0", "Canvas_delta_omega",
@@ -419,11 +460,11 @@ output_file_path = './ratio_theta.root'
 
 file_names = ['t_dist_1.root', 't_dist_10.root', 't_dist_100.root']
 
-process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_b, file_names, 'theta', legend_txt)
+process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_b, file_names, 'theta', legend_txt, top_left_txt)
 
 # Momentum
 output_file_path = './ratio_momentum.root'
 
 file_names = ['p_dist_10.root', 'p_dist_30.root', 'p_dist_50.root', 'p_dist_70.root', 'p_dist_89.root']
 
-process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_b, file_names, 'momentum', legend_txt)
+process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_b, file_names, 'momentum', legend_txt, top_left_txt)
