@@ -1,20 +1,23 @@
+import os
+
 # Lists of parameters
 ParticleList = ["mu"]#, "e", "pi"]
-#ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
-ThetaList = ["89"]
-MomentumList = ["1", "10", "100"]
-#MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
-DetectorModel = ["CLD_o2_v05"]  #["FCCee_o1_v04"]  ["CLD_o2_v05"]  ["CLD_o3_v01"]
+ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
+#ThetaList = ["70", "80", "89"]
+MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
+#MomentumList = ["1", "10", "100"]
+DetectorModel = ["CLD_o2_v05"]  #   FCCee_o1_v04   CLD_o2_v05   CLD_o3_v01
 Nevts = "10000"
-
-# Dictionary to generate process names and output filenames for different parameters combinations
-processList = {
-    f"REC_{DetectorModel[0]}_{particle}_{theta}_deg_{momentum}_GeV_{Nevts}_evts_edm4hep":{"output":f"{particle}_{theta}deg_{momentum}GeV_{Nevts}evts"}
-     for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
+Nevts_per_job = "1000" 
 
 # Output and input directories
-outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/"
-inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/REC/mu"
+#inputDir = f"/eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModel[0]}/REC/mu/VXD_3mic"
+outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/3T_2/mu/"
+inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/REC/3T/mu"
+
+processList = {
+    f"REC_{DetectorModel[0]}_{particle}_{theta}_deg_{momentum}_GeV_{Nevts_per_job}_evts_{i}_edm4hep":{"output":f"{particle}_{theta}deg_{momentum}GeV_{Nevts_per_job}evts_{i}"}
+     for particle in ParticleList for theta in ThetaList for momentum in MomentumList for i in range(int(Nevts)//int(Nevts_per_job))}
 
 # Optional: ncpus, default is 4, -1 uses all cores available
 nCPUS = -1
@@ -40,7 +43,6 @@ ROOT.gInterpreter.Declare("#include <marlinutil/HelixClass_double.h>")
 
 # List of variables to analyse
 varList = ["pt", "d0", "z0", "phi0", "omega", "tanLambda", "p", "phi", "theta"]
-varList2 = ["pt", "p"]
 
 class RDFanalysis():
 
@@ -91,27 +93,22 @@ class RDFanalysis():
                .Define("true_phi", "true_pvec.Phi()")
                .Define("true_theta", "true_pvec.Theta()")
 
-              ## MatchedGunParticle
-               #.Define("MatchedGunParticleMCMom", "std::vector<double> v = {MatchedGunParticle.momentum.x[0], MatchedGunParticle.momentum.y[0], MatchedGunParticle.momentum.z[0]}; return v;")
-               #.Define("MatchedGunParticleMCPos", "std::vector<double> v = {MatchedGunParticle.vertex.x[0], MatchedGunParticle.vertex.y[0], MatchedGunParticle.vertex.z[0]}; return v;")
-               #.Define("MatchedGunParticleMCHelix", "auto h = HelixClass_double(); h.Initialize_VP(MatchedGunParticleMCPos.data(), MatchedGunParticleMCMom.data(), -1, 2); return h;")
-               #.Define("true_pt_matched", "MatchedGunParticleMCHelix.getPXY()")
-               #.Define("true_pvec_matched", "ROOT::Math::XYZVector(MatchedGunParticleMCMom[0], MatchedGunParticleMCMom[1], MatchedGunParticleMCMom[2])")
-               #.Define("true_p_matched", "true_pvec_matched.R()") 
-
                .Define("chi2_trk", "trackData.chi2")
                .Define("ndf_trk", "trackData.ndf")
                .Define("chi2_over_ndf", "chi2_trk / ndf_trk")
                .Filter("chi2_over_ndf < 10 ")
+
+              # Remove fake tracks
+               .Filter("abs( (reco_pt - true_pt) / true_pt) <= 0.20")
+               .Filter("abs( (reco_phi - true_phi) / true_phi) <= 0.20 ")
+               .Filter("abs( (reco_theta - true_theta) / true_theta) <= 0.20 ")
+
+               .Define("num_reconstructed_tracks", "trackStates_IP.size() > 0 ? 1 : 0")
         )
 
         for v in varList:
             df2 = df2.Define(f"delta_{v}", f"reco_{v} - true_{v}")
             df2 = df2.Filter(f"std::isfinite(delta_{v})")
-           # Remove fake tracks
-            df2 = df2.Filter(f"abs( (reco_pt - true_pt) / true_pt) <= 0.20")
-            df2 = df2.Filter(f"abs( (reco_phi - true_phi) / true_phi) <= 0.20 ")
-            df2 = df2.Filter(f"abs( (reco_theta - true_theta) / true_theta) <= 0.20 ")
         if "phi0" in varList:
            # Correct phi wrap around
             df2 = df2.Redefine("delta_phi0", "delta_phi0 < -ROOT::Math::Pi() ? delta_phi0 + 2 * ROOT::Math::Pi() : delta_phi0")
@@ -123,6 +120,6 @@ class RDFanalysis():
         branchList += [f"reco_{v}" for v in varList]
         branchList += [f"true_{v}" for v in varList]
         branchList += [f"delta_{v}" for v in varList]
-        #branchList += [f"true_{v}_matched" for v in varList2]
         branchList += ["chi2_over_ndf"]
+        branchList += ["num_reconstructed_tracks"]
         return branchList
