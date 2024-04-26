@@ -32,7 +32,7 @@ num_jobs = total_events // int(Nevt_per_job)
 directory_jobs = f"CondorJobs/Rec_{particleList_[0]}_{DetectorModelList_[0]}"
 setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh"
 #InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
-InputDirectory = f"eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
+InputDirectory = f"/eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
 EosDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/3T/"
 
 #steering_file = "CLDReconstruction.py"
