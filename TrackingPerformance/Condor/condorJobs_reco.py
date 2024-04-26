@@ -10,14 +10,17 @@ import subprocess
 # Parameters Initialisation
 # ==========================
 # Define lists of parameters for reconstruction
-thetaList_ = ["89"] 
-momentumList_ = ["1", "10", "100"] 
-particleList_ = ["mu"]  
+thetaList_ = ["10", "20", "30", "40", "50", "60", "70", "80", "89"] 
+#thetaList_ = ["70", "80", "89"] 
+momentumList_ = ["1", "2", "5", "10", "20", "50", "100", "200"] 
+#momentumList_ = ["1", "10", "100"] 
+particleList_ = ["mu"]#,"e" ,"pi"]  
+#ResVDX_UV_ = ['0.001']
 
-DetectorModelList_ = ["CLD_o2_v05"]  
-Nevts_ = "10"  
+DetectorModelList_ = ["CLD_o3_v01"]  #  FCCee_o1_v04    CLD_o2_v05    CLD_o3_v01
+Nevts_ = "10000"  
 
-Nevt_per_job = "5"  # Set the desired number of events per job
+Nevt_per_job = "1000"  # Set the desired number of events per job
 N_jobs = int(int(Nevts_) / int(Nevt_per_job)) * len(particleList_) * len(thetaList_) * len(momentumList_)
 total_events = int(Nevts_)
 num_jobs = total_events // int(Nevt_per_job)
@@ -26,10 +29,14 @@ num_jobs = total_events // int(Nevt_per_job)
 # Directory Setup and Checks
 # ===========================
 # Define directories for input and output
-directory_jobs = "CondorJobs/Rec"
+directory_jobs = f"CondorJobs/Rec_{particleList_[0]}_{DetectorModelList_[0]}"
 setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh"
-InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/"
-EosDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/"
+#InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
+InputDirectory = f"eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
+EosDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/3T/"
+
+#steering_file = "CLDReconstruction.py"
+steering_file = "/afs/cern.ch/user/g/gasadows/CLDConfig/CLDConfig/CLDReconstruction_3T.py"
 
 # Enable output checks
 check_output = True  # Set to True to enable checks, False to disable
@@ -68,6 +75,8 @@ if os.path.exists(directory_jobs):
 import itertools
 list_of_combined_variables = itertools.product(thetaList_, momentumList_, particleList_, DetectorModelList_)
 
+need_to_create_scripts = False
+
 for theta, momentum, part, dect in list_of_combined_variables:
     for task_index in range(num_jobs):
 
@@ -78,7 +87,8 @@ for theta, momentum, part, dect in list_of_combined_variables:
         outputFileName+= f"_{Nevt_per_job}_evts"
         outputFileName+= f"_{task_index}"
 
-        inputFile= os.path.join(InputDirectory + f"/{part}", f"SIM_{dect}_{part}_{theta}_deg_{momentum}_GeV_{Nevt_per_job}_evts_{task_index}_edm4hep.root")   
+        inputFile= os.path.join(InputDirectory + f"/{part}", f"SIM_{dect}_{part}_{theta}_deg_{momentum}_GeV_{Nevt_per_job}_evts_{task_index}_edm4hep.root")  
+        #inputFile= os.path.join(InputDirectory + f"/{part}", f"SIM_{dect}_{part}_{theta}_deg_{momentum}_GeV_{Nevt_per_job}_evts_edm4hep.root")  
         #input_file= os.path.join(InputDirectory, "SIMTest_" + dect + "_" + part + "_" + theta + "_deg_" + momentum + "_GeV_" + Nevts_ + "_evts.slcio")
 
         # Check if the input file exists
@@ -95,24 +105,26 @@ for theta, momentum, part, dect in list_of_combined_variables:
                 root_file.Close()
                 continue
             root_file.Close()
+        need_to_create_scripts = True
 
         # Create aida output Dir
         output_dir_aida = os.path.join(output_dir, "aida_outputs"); os.makedirs(output_dir_aida, exist_ok=True)
 
         arguments = (
-            f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{DetectorModelList_[0]}/{DetectorModelList_[0]}.xml"+
+            f" --GeoSvc.detectors=/afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/CLD_o2_v05_3T/CLD_o2_v05.xml"+
+            #f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{DetectorModelList_[0]}/{DetectorModelList_[0]}.xml"+
             " --inputFiles " + inputFile + " --outputBasename  " + outputFileName+ 
             f" --VXDDigitiserResUV={ResVDX_UV_[0]}" + 
             " --trackingOnly" + 
             " -n " + Nevt_per_job
         )
-        command = f"k4run CLDReconstruction.py " + arguments + " > /dev/null"
+        command = f"k4run {steering_file} " + arguments + " > /dev/null"
 
         # Write bash script for job execution
         bash_script = (
             "#!/bin/bash \n"
             f"source {setup} \n"
-            "git clone https://github.com/gaswk/CLDConfig.git"+"\n"
+            "git clone https://github.com/gaswk/CLDConfig.git \n"
             "cd " + "CLDConfig/CLDConfig" + "\n"
             f"{command} \n"
             f"xrdcp {outputFileName}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
@@ -122,6 +134,10 @@ for theta, momentum, part, dect in list_of_combined_variables:
         with open(bash_file, "w") as file:
             file.write(bash_script)
             file.close()
+
+if not need_to_create_scripts:
+    print("All output files are correct.")
+    sys.exit(0)
 
 # ============================
 # Condor Submission Script
