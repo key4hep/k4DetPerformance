@@ -444,9 +444,12 @@ def process_and_compare_graphs(output_file_path, canvas_names, folder_a, folder_
 
 #______________________________________________________________________________
 # Define paths to the directories containing the ROOT files
-folder_a = '/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o2_v05/analysis/mu/plots/'
-folder_b = '/eos/user/g/gasadows/Output/TrackingPerformance/CLD_o3_v01/analysis/plots/'
-legend_txt =  [", CLD_o2_v5" , ", CLD_o3_v1"  ]
+DetectorModel_a = ["CLD_o2_v05"]  #   FCCee_o1_v04   CLD_o2_v05   CLD_o3_v01
+DetectorModel_b = ["CLD_o3_v01"]
+
+folder_a = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel_a[0]}/analysis/mu/plots/"
+folder_b = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel_b[0]}/analysis/3T/mu/plots/"
+legend_txt =  [", CLD_o2_v5 2T" , ", CLD_o3_v1 3T"  ]
 top_left_txt = "FCC-ee"
 
 canvas_names = [

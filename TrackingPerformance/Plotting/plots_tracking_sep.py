@@ -20,7 +20,7 @@ ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
 #ThetaList = ["70", "80", "89"]
 MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
 #MomentumList = ["1", "10", "100"]
-DetectorModel = ["CLD_o2_v05"]  #   FCCee_o1_v04   CLD_o2_v05   CLD_o3_v01
+DetectorModel = ["CLD_o3_v01"]  #   FCCee_o1_v04   CLD_o2_v05   CLD_o3_v01
 Nevts = "10000"
 
 stackMomentumList = ["1", "10", "100"]
@@ -28,14 +28,15 @@ stackThetaList = ["10", "30", "50", "70", "89"]
 #stackThetaList = ["70", "89"]
 
 def pname(particle, theta, momentum):
-    return f"{particle}_{theta}deg_{momentum}GeV_{Nevts}evts"
+    #return f"{particle}_{theta}deg_{momentum}GeV_{Nevts}evts"
+    return f"merged_{particle}_{theta}deg_{momentum}GeV_{Nevts}evts"
 
 processList = {pname(particle, theta, momentum):{} for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
 
-outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/mu/plots/"
-inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/mu/"
-#outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/Analysis/OT_midLayer_200mic/plots"
-#inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/Analysis/OT_midLayer_200mic/"
+#outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/mu/plots/"
+outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/3T/mu/plots/"
+#inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/mu/"
+inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/3T/mu/Merged"
 
 # Create outputDir if it does not exist
 if not os.path.exists(outputDir):

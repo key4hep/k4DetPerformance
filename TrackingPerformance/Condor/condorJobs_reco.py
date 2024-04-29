@@ -30,7 +30,8 @@ num_jobs = total_events // int(Nevt_per_job)
 # ===========================
 # Define directories for input and output
 directory_jobs = f"CondorJobs/Rec_{particleList_[0]}_{DetectorModelList_[0]}"
-setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh"
+#setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh" # nightlies
+setup = "/cvmfs/sw.hsf.org/key4hep/setup.sh"            # stable
 #InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
 InputDirectory = f"/eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
 EosDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/3T/"
@@ -111,8 +112,8 @@ for theta, momentum, part, dect in list_of_combined_variables:
         output_dir_aida = os.path.join(output_dir, "aida_outputs"); os.makedirs(output_dir_aida, exist_ok=True)
 
         arguments = (
-            f" --GeoSvc.detectors=/afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/CLD_o2_v05_3T/CLD_o2_v05.xml"+
-            #f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{DetectorModelList_[0]}/{DetectorModelList_[0]}.xml"+
+            #f" --GeoSvc.detectors=/afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/{DetectorModelList_[0]}_3T/{DetectorModelList_[0]}.xml"+
+            f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{DetectorModelList_[0]}/{DetectorModelList_[0]}.xml"+
             " --inputFiles " + inputFile + " --outputBasename  " + outputFileName+ 
             f" --VXDDigitiserResUV={ResVDX_UV_[0]}" + 
             " --trackingOnly" + 
