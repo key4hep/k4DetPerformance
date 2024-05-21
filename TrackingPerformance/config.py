@@ -1,13 +1,20 @@
 from pathlib import Path
 
+# define environment setup script path
+stable = Path("/cvmfs/sw.hsf.org/key4hep/setup.sh")
+nightlies = Path("/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh")
+setup = nightlies  # choose either stable or nightlies
+
 # define base directory
 baseDir = Path("/eos/home-v/vschwan/promotion/")
-# define directory to store output
+
+# define directory to store output and subdirs
 dataDir = baseDir / "data"
 SIMcondorDir = dataDir / "sim" / "condor_jobs"
-sim_steering_file = (
-    baseDir / "ILDConfig" / "StandardConfig" / "production" / "TPC_debug_muon_steer.py"
-)
+RECcondorDir = dataDir / "rec" / "condor_jobs"
+ILDDir = baseDir / "ILDConfig" / "StandardConfig" / "production"
+sim_steering_file = ILDDir / "TPC_debug_muon_steer.py"
+rec_steering_file = ILDDir / "ILDReconstruction.py"
 
 # ==========================
 # Job Parameters Initialisation

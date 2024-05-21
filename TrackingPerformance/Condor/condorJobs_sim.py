@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os
+from os import system  # for execution at the end
 import sys
 import ROOT
 import time
@@ -8,13 +8,14 @@ from pathlib import Path
 
 verbose = False
 
-
+# ==========================
+# Import config
+# ==========================
 # Add the project root directory to the sys.path
 project_root = Path(__file__).resolve().parent.parent
 # Append the project root to sys.path if not already present
 if project_root not in sys.path:
     sys.path.append(str(project_root))
-
 # import config
 import config
 
@@ -44,11 +45,13 @@ N_jobs = (
 # ===========================
 # Directory Setup and Checks
 # ===========================
+
+# Define environment setup path
+environ_path = config.setup
+
 # Define directories for input and output
-directory_jobs = config.SIMcondorDir / f"mu_{DetectorModelList_[0]}"
-# setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh" # nightlies
-setup = "/cvmfs/sw.hsf.org/key4hep/setup.sh"  # stable
-outputEosDir = config.dataDir / f"{DetectorModelList_[0]}/SIM"
+directory_jobs = config.SIMcondorDir / f"{particleList_[0]}_{DetectorModelList_[0]}"
+SIMEosDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # output
 
 # Enable output checks
 check_output = True  # Set to True to enable checks, False to disable
@@ -75,7 +78,7 @@ except FileExistsError:
     )
     sys.exit(1)
 
-outputEosDir.mkdir(
+SIMEosDir.mkdir(
     parents=True, exist_ok=True
 )  # This will create the directory if it doesn't exist, without raising an error if it does
 
@@ -104,18 +107,18 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             f"{momentum}_GeV",
             f"{Nevt_per_job}_evts",
             f"{task_index}",
-            "edm4hep.root",
         ]
         output_file_name = "_".join(output_file_name_parts)
+        output_file_path = Path(output_file_name).with_suffix(".edm4hep.root")
 
         # Check if the output file already exists and has correct Nb of events
-        output_dir = outputEosDir / part
+        output_dir = SIMEosDir / part / output_file_path
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / output_file_name
         if check_output and output_file.exists():
             root_file = ROOT.TFile(output_file, "READ")
             events_tree = root_file.Get("events")
-            if events_tree:
+            if events_tree:  # FIXME: why no else?
                 if events_tree.GetEntries() == int(Nevt_per_job):
                     root_file.Close()
                     continue
@@ -151,7 +154,7 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
         # Write bash script for job execution
         bash_script = (
             "#!/bin/bash \n"
-            f"source {setup} \n"
+            f"source {environ_path} \n"
             "git clone https://github.com/Victor-Schwan/TrackingStudies.git \n"
             f"{command} \n"
             f"xrdcp {output_file_name} root://eosuser.cern.ch/{output_dir} \n"
@@ -201,4 +204,6 @@ with open(condor_file, "w") as file2:
 # ====================
 # Submit Job to Condor
 # ====================
-# os.system("cd " + directory_jobs + "; condor_submit condor_script.sub")
+system(
+    "cd " + str(directory_jobs) + "; condor_submit condor_script.sub"
+)  # FIXME: use subprocess instead?

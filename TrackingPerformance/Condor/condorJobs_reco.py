@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
-import os
+from os import system  # for execution at the end
 import sys
 import ROOT
-import sys
-from os.path import dirname, abspath, join
+from pathlib import Path
 
+# ==========================
+# Import config
+# ==========================
 # Add the project root directory to the sys.path
-project_root = dirname(dirname(abspath(__file__)))
+project_root = Path(__file__).resolve().parent.parent
 # Append the project root to sys.path if not already present
 if project_root not in sys.path:
-    sys.path.append(project_root)
-
+    sys.path.append(str(project_root))
 # import config
 import config
 
@@ -24,9 +25,9 @@ momentumList_ = config.momentumList_
 particleList_ = config.particleList_
 
 DetectorModelList_ = config.detectorModel
-Nevts_ = "10000"
+Nevts_ = config.Nevts_
 
-Nevt_per_job = "1000"  # Set the desired number of events per job
+Nevt_per_job = config.Nevt_per_job
 N_jobs = (
     int(int(Nevts_) / int(Nevt_per_job))
     * len(particleList_)
@@ -39,20 +40,18 @@ num_jobs = total_events // int(Nevt_per_job)
 # ===========================
 # Directory Setup and Checks
 # ===========================
+
+# Define environment setup path
+environ_path = config.setup
+
 # Define directories for input and output
-directory_jobs = f"CondorJobs/Rec_{particleList_[0]}_{DetectorModelList_[0]}"
-# setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh" # nightlies
-setup = "/cvmfs/sw.hsf.org/key4hep/setup.sh"  # stable
+directory_jobs = config.RECcondorDir / f"{particleList_[0]}_{DetectorModelList_[0]}"
 # InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
-InputDirectory = f"/eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
-EosDir = (
-    f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/3T/"
-)
+SIMEosDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # input
+RECEosDir = config.dataDir / f"{DetectorModelList_[0]}" / "REC"  # output
 
 # steering_file = "CLDReconstruction.py"
-steering_file = (
-    "/afs/cern.ch/user/g/gasadows/CLDConfig/CLDConfig/CLDReconstruction_3T.py"
-)
+steering_file = config.rec_steering_file
 
 # Enable output checks
 check_output = True  # Set to True to enable checks, False to disable
@@ -77,14 +76,15 @@ except NameError:
     ResVDX_UV_ = ["0.003"]
 
 # Check if the directory exists and exit if it does
-if os.path.exists(directory_jobs):
+if directory_jobs.exists():
     print(
         f"Error: Directory '{directory_jobs}' already exists and should not be overwritten."
     )
     sys.exit(1)
 
 # Create output directories if they don't exist
-[os.makedirs(directory, exist_ok=True) for directory in [EosDir, directory_jobs]]
+RECEosDir.mkdir(parents=True, exist_ok=True)
+directory_jobs.mkdir(parents=True, exist_ok=True)
 
 # =======================
 # Simulation Job Creation
@@ -101,29 +101,40 @@ need_to_create_scripts = False
 for theta, momentum, part, dect in list_of_combined_variables:
     for task_index in range(num_jobs):
 
-        outputFileName = f"REC_{dect}"
-        outputFileName += f"_{part}"
-        outputFileName += f"_{theta}_deg"
-        outputFileName += f"_{momentum}_GeV"
-        outputFileName += f"_{Nevt_per_job}_evts"
-        outputFileName += f"_{task_index}"
+        output_file_name_parts = [
+            f"REC_{dect}",
+            f"{part}",
+            f"{theta}_deg",
+            f"{momentum}_GeV",
+            f"{Nevt_per_job}_evts",
+            f"{task_index}",
+        ]
+        output_file_name = "_".join(output_file_name_parts)
 
-        inputFile = os.path.join(
-            InputDirectory + f"/{part}",
-            f"SIM_{dect}_{part}_{theta}_deg_{momentum}_GeV_{Nevt_per_job}_evts_{task_index}_edm4hep.root",
-        )
-        # inputFile= os.path.join(InputDirectory + f"/{part}", f"SIM_{dect}_{part}_{theta}_deg_{momentum}_GeV_{Nevt_per_job}_evts_edm4hep.root")
-        # input_file= os.path.join(InputDirectory, "SIMTest_" + dect + "_" + part + "_" + theta + "_deg_" + momentum + "_GeV_" + Nevts_ + "_evts.slcio")
+        input_file_name_parts = [
+            f"SIM_{dect}",
+            f"{part}",
+            f"{theta}_deg",
+            f"{momentum}_GeV",
+            f"{Nevt_per_job}_evts",
+            f"{task_index}",
+        ]
+        input_file_name = "_".join(input_file_name_parts)
+        input_file_path = Path(input_file_name).with_suffix(".edm4hep.root")
+        inputFile = (
+            SIMEosDir / part / input_file_path
+        )  # FIXME: reasonable that part is twice in the path?
 
         # Check if the input file exists
-        if not os.path.exists(inputFile):
+        if not inputFile.exists():
             print(f"Error: Input file {inputFile} does not exist. Skipping job.")
             continue
         # Check if the output file already exists and has correct Nb of events
-        output_dir = os.path.join(EosDir, part)
-        os.makedirs(output_dir, exist_ok=True)
-        output_file = output_dir + "/" + outputFileName + "_edm4hep.root"
-        if check_output and os.path.exists(output_file):
+        output_dir = RECEosDir / part
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = (output_dir / output_file_name).with_suffix("_edm4hep.root")
+
+        if check_output and output_file.exists():
             root_file = ROOT.TFile(output_file, "READ")
             events_tree = root_file.Get("events")
             if events_tree and events_tree.GetEntries() == int(Nevt_per_job):
@@ -133,8 +144,8 @@ for theta, momentum, part, dect in list_of_combined_variables:
         need_to_create_scripts = True
 
         # Create aida output Dir
-        output_dir_aida = os.path.join(output_dir, "aida_outputs")
-        os.makedirs(output_dir_aida, exist_ok=True)
+        output_dir_aida = output_dir / "aida_outputs"
+        output_dir_aida.mkdir(exist_ok=True)
 
         arguments = (
             # f" --GeoSvc.detectors=/afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/{DetectorModelList_[0]}_3T/{DetectorModelList_[0]}.xml"+
@@ -142,7 +153,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
             + " --inputFiles "
             + inputFile
             + " --outputBasename  "
-            + outputFileName
+            + output_file_name
             + f" --VXDDigitiserResUV={ResVDX_UV_[0]}"
             + " --trackingOnly"
             + " -n "
@@ -153,12 +164,12 @@ for theta, momentum, part, dect in list_of_combined_variables:
         # Write bash script for job execution
         bash_script = (
             "#!/bin/bash \n"
-            f"source {setup} \n"
+            f"source {environ_path} \n"
             "git clone https://github.com/gaswk/CLDConfig.git \n"
             "cd " + "CLDConfig/CLDConfig" + "\n"
             f"{command} \n"
-            f"xrdcp {outputFileName}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
-            f"xrdcp {outputFileName}_aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
+            f"xrdcp {output_file_name}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
+            f"xrdcp {output_file_name}_aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
         )
         bash_file = (
             directory_jobs
@@ -193,4 +204,6 @@ with open(condor_file, "w") as file2:
 # ====================
 # Submit Job to Condor
 # ====================
-os.system("cd " + directory_jobs + "; condor_submit condor_script.sub")
+system(
+    "cd " + str(directory_jobs) + "; condor_submit condor_script.sub"
+)  # FIXME: use subprocess instead?
