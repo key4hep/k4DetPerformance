@@ -4,16 +4,16 @@ import os
 import sys
 import ROOT
 import time
-from os.path import dirname, abspath, join
+from pathlib import Path
 
 verbose = False
 
 
 # Add the project root directory to the sys.path
-project_root = dirname(dirname(abspath(__file__)))
+project_root = Path(__file__).resolve().parent.parent
 # Append the project root to sys.path if not already present
 if project_root not in sys.path:
-    sys.path.append(project_root)
+    sys.path.append(str(project_root))
 
 # import config
 import config
@@ -45,10 +45,10 @@ N_jobs = (
 # Directory Setup and Checks
 # ===========================
 # Define directories for input and output
-directory_jobs = join(config.SIMcondorDir, f"mu_{DetectorModelList_[0]}")
+directory_jobs = config.SIMcondorDir / f"mu_{DetectorModelList_[0]}"
 # setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh" # nightlies
 setup = "/cvmfs/sw.hsf.org/key4hep/setup.sh"  # stable
-outputEosDir = join(config.dataDir, f"{DetectorModelList_[0]}/SIM")
+outputEosDir = config.dataDir / f"{DetectorModelList_[0]}/SIM"
 
 # Enable output checks
 check_output = True  # Set to True to enable checks, False to disable
@@ -68,15 +68,15 @@ JobFlavour = "testmatch"
 
 # Check if the directory exists and exit if it does
 try:
-    os.makedirs(directory_jobs, exist_ok=False)
+    directory_jobs.mkdir(parents=True, exist_ok=False)
 except FileExistsError:
     print(
         f"Error: Directory '{directory_jobs}' already exists and should not be overwritten."
     )
     sys.exit(1)
 
-os.makedirs(
-    outputEosDir, exist_ok=True
+outputEosDir.mkdir(
+    parents=True, exist_ok=True
 )  # This will create the directory if it doesn't exist, without raising an error if it does
 
 
@@ -109,10 +109,10 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
         output_file_name = "_".join(output_file_name_parts)
 
         # Check if the output file already exists and has correct Nb of events
-        output_dir = join(outputEosDir, part)
-        os.makedirs(output_dir, exist_ok=True)
-        output_file = join(output_dir, output_file_name)
-        if check_output and os.path.exists(output_file):
+        output_dir = outputEosDir / part
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / output_file_name
+        if check_output and output_file.exists():
             root_file = ROOT.TFile(output_file, "READ")
             events_tree = root_file.Get("events")
             if events_tree:
@@ -156,10 +156,6 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             f"{command} \n"
             f"xrdcp {output_file_name} root://eosuser.cern.ch/{output_dir} \n"
         )
-        bash_file = (
-            directory_jobs
-            + f"/bash_script_{dect}_{part}_{momentum}_{theta}_{task_index}.sh"
-        )
         bash_file_name_parts = [
             "bash_script",
             dect,
@@ -168,7 +164,7 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             f"{momentum}_GeV",
             str(task_index),
         ]
-        bash_file = f"{directory_jobs}/{'_'.join(bash_file_name_parts)}.sh"
+        bash_file = directory_jobs / "_".join(bash_file_name_parts) + ".sh"
 
         with open(bash_file, "w") as file:
             file.write(bash_script)
@@ -197,7 +193,7 @@ condor_script = (
     f'+JobFlavour = "{JobFlavour}" \n'
     "queue filename matching files *.sh \n"
 )
-condor_file = directory_jobs + "/condor_script.sub"
+condor_file = directory_jobs / "condor_script.sub"
 with open(condor_file, "w") as file2:
     file2.write(condor_script)
     file2.close()
