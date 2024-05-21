@@ -5,7 +5,7 @@ import sys
 import ROOT
 from pathlib import Path
 
-verbose = False
+verbose = True
 
 # ==========================
 # Import config
@@ -32,12 +32,13 @@ Nevt_per_job = config.Nevt_per_job  # Set the desired number of events per job
 
 
 total_events = int(Nevts_)
-num_jobs_per_para_set = total_events // int(
+N_para_sets = (
+    len(DetectorModelList_) * len(particleList_) * len(thetaList_) * len(momentumList_)
+)
+N_jobs_per_para_set = total_events // int(
     Nevt_per_job
 )  # number of parallel jobs with same parameter combination/set
-N_jobs = (
-    num_jobs_per_para_set * len(particleList_) * len(thetaList_) * len(momentumList_)
-)  # total number of jobs
+N_jobs = N_jobs_per_para_set * N_para_sets  # total number of jobs
 
 # ===========================
 # Directory Setup and Checks
@@ -95,7 +96,7 @@ need_to_create_scripts = False
 if verbose:
     print(f"1st of {N_jobs} different parameter combinations starts")
 for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variables):
-    for task_index in range(num_jobs_per_para_set):
+    for task_index in range(N_jobs_per_para_set):
 
         output_file_name_parts = [
             f"SIM_{dect}",
@@ -167,10 +168,10 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             file.close()
 
         if verbose:
-            print(f"    {task_index+1} of {num_jobs_per_para_set} parallel jobs done")
+            print(f"    {task_index+1} of {N_jobs_per_para_set} parallel jobs done")
 
     if verbose:
-        print(f"{counter+1} of {N_jobs} different parameter combinations done")
+        print(f"{counter+1} of {N_para_sets} different parameter combinations done")
 
 if not need_to_create_scripts:
     print("All output files are correct.")
