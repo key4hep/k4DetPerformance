@@ -164,7 +164,7 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             f"{momentum}_GeV",
             str(task_index),
         ]
-        bash_file = directory_jobs / "_".join(bash_file_name_parts) + ".sh"
+        bash_file = (directory_jobs / "_".join(bash_file_name_parts)).with_suffix(".sh")
 
         with open(bash_file, "w") as file:
             file.write(bash_script)
