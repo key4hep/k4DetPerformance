@@ -3,7 +3,6 @@
 from os import system  # for execution at the end
 import sys
 import ROOT
-import time
 from pathlib import Path
 
 verbose = False
@@ -18,8 +17,6 @@ if project_root not in sys.path:
     sys.path.append(str(project_root))
 # import config
 import config
-
-ts = time.time()  # Get current timestamp for unique identifiers
 
 # ==========================
 # Parameters Initialisation
@@ -126,9 +123,6 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
         else:
             need_to_create_scripts = True
 
-        time.sleep(1)
-        seed = str(time.time() % 1000)
-
         # if len(DetectorModelList_) != 1 or DetectorModelList_[0] != "ILD_l5_v11":
         #     raise ValueError("so far only ILD_l5_v11 possible")
 
@@ -139,7 +133,6 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             f"--outputFile {output_file_name}",
             f"--steeringFile {config.sim_steering_file}",  # "CLDConfig/CLDConfig/cld_steer.py "
             # TODO: FIX
-            # f"--random.seed {seed}",
             # "--enableGun",
             # f"--gun.particle {part}-",
             # f"--gun.energy {momentum}*GeV",
