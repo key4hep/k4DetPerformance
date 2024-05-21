@@ -5,8 +5,6 @@ import sys
 import ROOT
 from pathlib import Path
 
-verbose = True
-
 # ==========================
 # Import config
 # ==========================
@@ -93,8 +91,7 @@ iter_of_combined_variables = itertools.product(
 
 need_to_create_scripts = False
 
-if verbose:
-    print(f"1st of {N_jobs} different parameter combinations starts")
+
 for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variables):
     for task_index in range(N_jobs_per_para_set):
 
@@ -167,11 +164,6 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             file.write(bash_script)
             file.close()
 
-        if verbose:
-            print(f"    {task_index+1} of {N_jobs_per_para_set} parallel jobs done")
-
-    if verbose:
-        print(f"{counter+1} of {N_para_sets} different parameter combinations done")
 
 if not need_to_create_scripts:
     print("All output files are correct.")
