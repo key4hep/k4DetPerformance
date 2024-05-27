@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from os import system  # for execution at the end
 import sys
-import ROOT
+from os import system  # for execution at the end
 from pathlib import Path
+
+import ROOT
 
 # ==========================
 # Import config
@@ -50,11 +51,11 @@ directory_jobs = config.SIMcondorDir / f"{particleList_[0]}_{DetectorModelList_[
 SIMEosDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # output
 
 # Enable output checks
-check_output = True  # Set to True to enable checks, False to disable
+CHECK_OUTPUT = True  # Set to True to enable checks, False to disable
 # It will check if the ouputs exist and contain correct number of events
 # if not it will send job to rerun simulation
 
-JobFlavour = "testmatch"
+JOB_FLAVOR = "testmatch"
 # Job flavours:
 #   espresso     = 20 minutes
 #   microcentury = 1 hour
@@ -110,7 +111,7 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
         output_dir = SIMEosDir / part / output_file_path
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / output_file_name
-        if check_output and output_file.exists():
+        if CHECK_OUTPUT and output_file.exists():
             root_file = ROOT.TFile(output_file, "READ")
             events_tree = root_file.Get("events")
             if events_tree:  # FIXME: why no else?
@@ -160,7 +161,7 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
         ]
         bash_file = (directory_jobs / "_".join(bash_file_name_parts)).with_suffix(".sh")
 
-        with open(bash_file, "w") as file:
+        with open(bash_file, "w", encoding="utf-8") as file:
             file.write(bash_script)
             file.close()
 
@@ -179,11 +180,11 @@ condor_script = (
     "output = output.$(ClusterId).$(ProcId).out \n"
     "error = error.$(ClusterId).$(ProcId).err \n"
     "log = log.$(ClusterId).log \n"
-    f'+JobFlavour = "{JobFlavour}" \n'
+    f'+JobFlavour = "{JOB_FLAVOR}" \n'
     "queue filename matching files *.sh \n"
 )
 condor_file = directory_jobs / "condor_script.sub"
-with open(condor_file, "w") as file2:
+with open(condor_file, "w", encoding="utf-8") as file2:
     file2.write(condor_script)
     file2.close()
 
