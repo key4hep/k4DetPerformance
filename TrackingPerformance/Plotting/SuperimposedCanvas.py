@@ -59,7 +59,7 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
        # Define different legend position for theta and momentum plots
         if marker_styles_func == momentum_styles:
             output_legend = ROOT.TLegend(0.55, 0.55, 1.30, 0.92)
-            #output_legend = ROOT.TLegend(0.65, 0.55, 1.30, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad 
+            #output_legend = ROOT.TLegend(0.65, 0.55, 1.30, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad
         elif marker_styles_func == theta_styles:
             output_legend = ROOT.TLegend(0.5, 0.60, 1.15, 0.92)    #x1,y1,x2,y2 normalised coordinates in the current pad
         output_legend.SetTextFont(62)
@@ -72,7 +72,7 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
         for input_file_idx, input_file in enumerate(input_files):
             input_root_file = ROOT.TFile(input_file)
             input_canvas = input_root_file.Get(canvas_name)
-            
+
             if input_canvas and input_canvas.InheritsFrom("TCanvas"):
                 primitives = input_canvas.GetListOfPrimitives()
                 for i in range(primitives.GetSize()):
@@ -110,15 +110,15 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
                         if prim.InheritsFrom("TLegend"):
                             input_legend = prim
                             break
-                    
+
                     if input_legend:
-                        for marker_idx in range(len(marker_styles)):   
+                        for marker_idx in range(len(marker_styles)):
                             new_entry = input_legend.GetListOfPrimitives().At(marker_idx).Clone()
                             new_entry.SetTextFont(43)
                             new_entry.SetFillStyle(0)
                             new_entry.SetMarkerStyle(marker_styles[marker_idx])
                             new_entry.SetMarkerColor(marker_colors[marker_idx])
-                            new_entry.SetMarkerSize(1.5) 
+                            new_entry.SetMarkerSize(1.5)
                             legend_label = f"{new_entry.GetLabel()}{legend_text[input_file_idx]}\n"
                             output_legend.AddEntry(new_entry, legend_label, "P")
                         #for marker_idx in range(1, len(marker_styles) + 1 ): # Skip legend Title
@@ -134,13 +134,13 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
 
 
         output_canvas = ROOT.TCanvas(canvas_name, "Superposed Canvas", 800, 800)
-        
+
         # Set log scales for X and Y axes
         if log_x:
             output_canvas.SetLogx()
         if log_y:
             output_canvas.SetLogy()
-        
+
         # Get the current pad
         pad = output_canvas.GetPad(0)
         # Set the position of the right and top axes
@@ -151,17 +151,17 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
         output_canvas.SetLeftMargin(0.185)
         output_canvas.SetTopMargin(0.06)
         output_canvas.SetBottomMargin(0.15)
-        
+
         # Draw the superposed TMultiGraph to the output canvas
         superposed_multigraph.Draw("APE" if output_canvas.GetListOfPrimitives().GetSize() == 0 else "APEsame")
-        
+
         # Set the X-axis title
         if marker_styles_func == momentum_styles:
             superposed_multigraph.GetXaxis().SetTitle("momentum [GeV]")
         elif marker_styles_func == theta_styles:
             superposed_multigraph.GetXaxis().SetTitle("#theta [deg]")
         superposed_multigraph.GetXaxis().SetTitleSize(0.06)
-        
+
         # Set the Y-axis title based on the input canvas name
         y_axis_title = set_y_axis_title(canvas_name)
         superposed_multigraph.GetYaxis().SetTitle(y_axis_title)
@@ -174,19 +174,19 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
         elif marker_styles_func == momentum_styles:
             y_axis_range = set_y_axis_range_momentum(canvas_name)
             superposed_multigraph.GetYaxis().SetRangeUser(y_axis_range[0],y_axis_range[1])
-        
+
         # Set bigger axis scale numbers
         superposed_multigraph.GetXaxis().SetLabelSize(0.05)
         superposed_multigraph.GetYaxis().SetLabelSize(0.05)
-        
+
         # Increase the marker size
         marker_size = 1.5
         for graph in superposed_multigraph.GetListOfGraphs():
             graph.SetMarkerSize(marker_size)
-        
+
         # Draw the legend on the output canvas
         output_legend.Draw()
-        
+
         # Add text on the top left above the graph
         text_left_x = 0.19
         text_left_y = 0.95
@@ -195,7 +195,7 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
         latex_left.SetTextFont(42)
         latex_left.SetTextSize(0.04)
         latex_left.DrawLatexNDC(text_left_x, text_left_y, "FCC-ee CLD")
-        
+
         # Save the output canvas to the root file
         output_root_file.cd()
         output_canvas.Write()
@@ -210,7 +210,7 @@ def combine_canvases(input_files, output_file, marker_styles_func, legend_text, 
     output_pdf_canvas.Print(output_pdf_file + "]")
     output_root_file.Close()
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
 
     def set_styles_and_colors_momentum(input_file_idx):
         marker_styles_full = [ROOT.kFullTriangleUp, ROOT.kFullSquare, ROOT.kFullDiamond, ROOT.kFullCross, ROOT.kFullCircle]
@@ -231,7 +231,7 @@ if __name__ == "__main__":
             0: (marker_styles_full, colors1),
             1: (marker_styles_open, colors1),
         }
-        
+
         return style_map.get(input_file_idx, (marker_styles_full, colors1))
     momentum_styles = set_styles_and_colors_momentum
 
@@ -254,7 +254,7 @@ if __name__ == "__main__":
             #2: (marker_styles_full, colors1),
             #3: (marker_styles_full, colors2),
         }
-        
+
         return style_map.get(input_file_idx, (marker_styles_full, colors1))
     theta_styles = set_styles_and_colors_theta
 #_________________________________________________________________

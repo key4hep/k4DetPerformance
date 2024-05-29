@@ -27,14 +27,14 @@ def merge_files(theta, momentum, part, dect, eos_dir, Nevts_, Nevt_per_job):
 def main():
 
     print(f"Number of processors available: {os.cpu_count()}")
-    
+
     # Parameters as per your script
     thetaList_ = ["89"]
     momentumList_ = ["1", "10", "100"]
     particleList_ = ["mu"]
     DetectorModelList_ = ["CLD_o2_v05"]
 
-    Nevts_ = "10"  
+    Nevts_ = "10"
     Nevt_per_job = "5"
 
     eos_dir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/"

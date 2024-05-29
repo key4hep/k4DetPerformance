@@ -8,7 +8,7 @@ MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
 #MomentumList = ["1", "10", "100"]
 DetectorModel = ["CLD_o2_v05"]  #   FCCee_o1_v04   CLD_o2_v05   CLD_o3_v01
 Nevts = "10000"
-Nevts_per_job = "1000" 
+Nevts_per_job = "1000"
 
 # Output and input directories
 #inputDir = f"/eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModel[0]}/REC/mu/VXD_3mic"
@@ -56,10 +56,10 @@ class RDFanalysis():
                .Define("GunParticle_index", "MCParticles.generatorStatus == 1")
                .Define("GunParticle", "MCParticles[GunParticle_index][0]")
 
-               .Define("trackStates_IP", "SiTracks_Refitted_1[SiTracks_Refitted_1.location == 1]") 
+               .Define("trackStates_IP", "SiTracks_Refitted_1[SiTracks_Refitted_1.location == 1]")
                .Define("MC2TrackIndex", "MCTruthTrackIndex(MCTrackAssociations0, MCTrackAssociations1, MCParticles)")
                .Define("GunParticleTrackIndex", "MC2TrackIndex[GunParticle_index][0]")
-               .Define("GunParticleTSIP", "trackStates_IP[GunParticleTrackIndex]") 
+               .Define("GunParticleTSIP", "trackStates_IP[GunParticleTrackIndex]")
 
                .Define("MatchedGunParticle_1", "MCParticles[MC2TrackIndex != -1]")
                .Define("MatchedGunParticle", "FCCAnalyses::MCParticle::sel_genStatus(1) (MatchedGunParticle_1)")
@@ -75,7 +75,7 @@ class RDFanalysis():
                .Define("reco_omega", "GunParticleTSIP.omega")
                .Define("reco_tanLambda", "GunParticleTSIP.tanLambda")
                .Define("reco_pvec", "auto p = GunParticleTSIPHelix.getMomentum(); return ROOT::Math::XYZVector(p[0], p[1], p[2]);")
-               .Define("reco_p", "reco_pvec.R()") 
+               .Define("reco_p", "reco_pvec.R()")
                .Define("reco_phi", "reco_pvec.Phi()")
                .Define("reco_theta", "reco_pvec.Theta()")
 
@@ -89,7 +89,7 @@ class RDFanalysis():
                .Define("true_omega", "GunParticleMCHelix.getOmega()")
                .Define("true_tanLambda", "GunParticleMCHelix.getTanLambda()")
                .Define("true_pvec", "ROOT::Math::XYZVector(GunParticleMCMom[0], GunParticleMCMom[1], GunParticleMCMom[2])")
-               .Define("true_p", "true_pvec.R()") 
+               .Define("true_p", "true_pvec.R()")
                .Define("true_phi", "true_pvec.Phi()")
                .Define("true_theta", "true_pvec.Theta()")
 
