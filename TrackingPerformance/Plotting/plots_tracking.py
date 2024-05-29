@@ -5,7 +5,7 @@ import os
 ROOT.gStyle.SetOptFit(1111)
 # Define marker styles and colors
 marker_styles = [ROOT.kOpenTriangleUp, ROOT.kOpenSquare, ROOT.kOpenDiamond, ROOT.kOpenCross, ROOT.kOpenCircle]
-colors = [ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kGreen, ROOT.kBlack] 
+colors = [ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kGreen, ROOT.kBlack]
 ROOT.gROOT.SetBatch(True)  # Run ROOT in batch mode to avoid displaying the plot
 canvas_width = 900  # Width of the canvas in pixels
 canvas_height = 800  # Height of the canvas in pixels
@@ -90,7 +90,7 @@ for p in processList:
 var_col = {}
 var_low = {}
 var_high = {}
-h = {}  
+h = {}
 # get bin borders and run again to make histograms
 for p in processList:
     var_col[p] = {}
@@ -100,14 +100,14 @@ for p in processList:
     for v in varList:
         var_col[p][v] = sorted(var_col_rp[p][v].GetValue())
         # Adjust the filtering parameters here
-        threshold = 2.5  # Adjust the threshold value 
-        n_selections = 3  # Adjust the number of selections 
+        threshold = 2.5  # Adjust the threshold value
+        n_selections = 3  # Adjust the number of selections
         var_col[p][v] = filter_data_std(var_col[p][v], threshold, n_selections)
-        
+
         # Recalculate var_low and var_high after filtering
         var_low[p][v] = min(var_col[p][v])
         var_high[p][v] = max(var_col[p][v])
-        
+
         h[p][v] = (df[p]
                    .Filter(f"{v} > {var_low[p][v]} && {v} < {var_high[p][v]}")
                    .Histo1D((v, f"{p};{title[v]}", 200, var_low[p][v], var_high[p][v]), v)
@@ -215,7 +215,7 @@ for v in varList:
     pad.SetTickx(1)  # Draw the x-axis ticks on the top
     pad.SetTicky(1)  # Draw the y-axis ticks on the right
    # Draw the axes and data points
-    p_dist[v].Draw("APE") 
+    p_dist[v].Draw("APE")
    # Increase the size of the axis title text
     p_dist[v].GetXaxis().SetTitleSize(0.06)
     p_dist[v].GetYaxis().SetTitleSize(0.06)
@@ -286,7 +286,7 @@ for v in varList:
     pad.SetTickx(1)  # Draw the x-axis ticks on the top
     pad.SetTicky(1)  # Draw the y-axis ticks on the right
    # Draw the axes and data points
-    t_dist[v].Draw("AP") 
+    t_dist[v].Draw("AP")
    # Increase the size of the axis title text
     t_dist[v].GetXaxis().SetTitleSize(0.06)
     t_dist[v].GetYaxis().SetTitleSize(0.06)
