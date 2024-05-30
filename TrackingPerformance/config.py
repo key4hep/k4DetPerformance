@@ -5,16 +5,23 @@ stable = Path("/cvmfs/sw.hsf.org/key4hep/setup.sh")
 nightlies = Path("/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh")
 setup = nightlies  # choose either stable or nightlies
 
-# define base directory
-baseDir = Path("/eos/home-v/vschwan/promotion/")
+# ==========================
+# define base directories
+# ==========================
+
+# those files are available to job
+baseAFSDir = Path("/afs/cern.ch/user/") / "v/vschwan/promotion"
+# not directly available to job, only for storing purposes
+baseEOSDir = Path("/eos/") / "home-v/vschwan/promotion/"
 
 # define directory to store output and subdirs
-dataDir = baseDir / "data"
+dataDir = baseEOSDir / "data"
 SIMcondorDir = dataDir / "sim" / "condor_jobs"
 RECcondorDir = dataDir / "rec" / "condor_jobs"
-ILDDir = baseDir / "ILDConfig" / "StandardConfig" / "production"
-sim_steering_file = ILDDir / "TPC_debug_muon_steer.py"
-rec_steering_file = ILDDir / "ILDReconstruction.py"
+# detector specific
+detectorDIR = baseAFSDir / "ILDConfig" / "StandardConfig" / "production"
+sim_steering_file = detectorDIR / "TPC_debug_muon_steer.py"
+rec_steering_file = detectorDIR / "ILDReconstruction.py"
 
 # ==========================
 # Job Parameters Initialisation
