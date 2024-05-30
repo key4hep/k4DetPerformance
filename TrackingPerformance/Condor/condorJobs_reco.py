@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from os import system  # for execution at the end
 import sys
-import ROOT
+from os import system  # for execution at the end
 from pathlib import Path
+
+import ROOT
 
 # ==========================
 # Import config
@@ -165,7 +166,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
         bash_script = (
             "#!/bin/bash \n"
             f"source {environ_path} \n"
-            "git clone https://github.com/gaswk/CLDConfig.git \n"
+            "git clone https://github.com/gaswk/CLDConfig.git \n"  # FIXME: new repo location in k4hep
             "cd " + "CLDConfig/CLDConfig" + "\n"
             f"{command} \n"
             f"xrdcp {output_file_name}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"

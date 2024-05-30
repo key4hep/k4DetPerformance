@@ -147,7 +147,7 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
         bash_script = (
             "#!/bin/bash \n"
             f"source {environ_path} \n"
-            "git clone https://github.com/Victor-Schwan/TrackingStudies.git \n"
+            "git clone https://github.com/Victor-Schwan/TrackingStudies.git \n"  # FIXME: new repo location
             f"{command} \n"
             f"xrdcp {output_file_name} root://eosuser.cern.ch/{output_dir} \n"
         )
