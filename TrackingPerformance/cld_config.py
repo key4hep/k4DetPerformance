@@ -33,6 +33,15 @@ rec_steering_file = detectorDIR / "CHANGE" / "PATH"  # FIXME
 
 Nevts_ = "30"
 Nevt_per_job = "10"  # Set the desired number of events per job
+JOB_FLAVOR = "longlunch"
+# Job flavours:
+#   espresso     = 20 minutes
+#   microcentury = 1 hour
+#   longlunch    = 2 hours
+#   workday      = 8 hours
+#   tomorrow     = 1 day
+#   testmatch    = 3 days
+#   nextweek     = 1 week
 
 
 # ==========================

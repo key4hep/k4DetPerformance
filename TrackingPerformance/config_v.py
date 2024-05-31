@@ -37,6 +37,15 @@ rec_steering_file = detectorDIR / "ILDReconstruction.py"
 
 Nevts_ = "1"
 Nevt_per_job = "1"  # Set the desired number of events per job
+JOB_FLAVOR = "espresso"
+# Job flavours:
+#   espresso     = 20 minutes
+#   microcentury = 1 hour
+#   longlunch    = 2 hours
+#   workday      = 8 hours
+#   tomorrow     = 1 day
+#   testmatch    = 3 days
+#   nextweek     = 1 week
 
 
 # ==========================

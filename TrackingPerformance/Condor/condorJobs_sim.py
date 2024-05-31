@@ -68,19 +68,12 @@ def main():
     SIMEOSDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # output
 
     # Enable output checks
-    CHECK_OUTPUT = True  # Set to True to enable checks, False to disable
-    # It will check if the ouputs exist and contain correct number of events
-    # if not it will send job to rerun simulation
-
-    JOB_FLAVOR = "testmatch"
-    # Job flavours:
-    #   espresso     = 20 minutes
-    #   microcentury = 1 hour
-    #   longlunch    = 2 hours
-    #   workday      = 8 hours
-    #   tomorrow     = 1 day
-    #   testmatch    = 3 days
-    #   nextweek     = 1 week
+    CHECK_OUTPUT = True
+    """
+    Set to True to enable checks, False to disable
+    It will check if the ouputs exist and contain correct number of events
+    if not it will send job to rerun simulation
+    """
 
     # Check if the directory exists and exit if it does
     try:
@@ -198,7 +191,7 @@ def main():
         "output = output.$(ClusterId).$(ProcId).out \n"
         "error = error.$(ClusterId).$(ProcId).err \n"
         "log = log.$(ClusterId).log \n"
-        f'+JobFlavour = "{JOB_FLAVOR}" \n'
+        f'+JobFlavour = "{config.JOB_FLAVOR}" \n'
         "queue filename matching files *.sh \n"
     )
     condor_file = directory_jobs / "condor_script.sub"
