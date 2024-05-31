@@ -9,6 +9,7 @@ import ROOT
 # ==========================
 # Import config
 # ==========================
+
 # Add the project root directory to the sys.path
 project_root = Path(__file__).resolve().parent.parent
 # Append the project root to sys.path if not already present
@@ -18,8 +19,22 @@ if project_root not in sys.path:
 import config
 
 # ==========================
+# Check paths
+# ==========================
+
+assert (
+    config.sim_steering_file.exists()
+), f"The file {config.sim_steering_file} does not exist"
+assert (
+    config.rec_steering_file.exists()
+), f"The file {config.rec_steering_file} does not exist"
+assert config.detectorDIR.exists(), f"The folder {config.detectorDIR} does not exist"
+
+
+# ==========================
 # Parameters Initialisation
 # ==========================
+
 # Define lists of parameters for reconstruction
 thetaList_ = config.thetaList_
 momentumList_ = config.momentumList_
@@ -48,7 +63,7 @@ environ_path = config.setup
 
 # Define directories for input and output
 directory_jobs = config.SIMcondorDir / f"{particleList_[0]}_{DetectorModelList_[0]}"
-SIMEosDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # output
+SIMEOSDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # output
 
 # Enable output checks
 CHECK_OUTPUT = True  # Set to True to enable checks, False to disable
@@ -75,7 +90,7 @@ except FileExistsError:
     )
     sys.exit(1)
 
-SIMEosDir.mkdir(
+SIMEOSDir.mkdir(
     parents=True, exist_ok=True
 )  # This will create the directory if it doesn't exist, without raising an error if it does
 
@@ -83,6 +98,7 @@ SIMEosDir.mkdir(
 # =======================
 # Simulation Job Creation
 # =======================
+
 # Create all possible combinations
 import itertools
 
@@ -104,15 +120,16 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
             f"{Nevt_per_job}_evts",
             f"{task_index}",
         ]
-        output_file_name = "_".join(output_file_name_parts)
-        output_file_path = Path(output_file_name).with_suffix(".edm4hep.root")
+        output_file_name = Path("_".join(output_file_name_parts)).with_suffix(
+            ".edm4hep.root"
+        )
 
         # Check if the output file already exists and has correct Nb of events
-        output_dir = SIMEosDir / part / output_file_path
+        output_dir = SIMEOSDir / part
         output_dir.mkdir(parents=True, exist_ok=True)
-        output_file = output_dir / output_file_name
-        if CHECK_OUTPUT and output_file.exists():
-            root_file = ROOT.TFile(output_file, "READ")
+        output_file_path = output_dir / output_file_name
+        if CHECK_OUTPUT and output_file_path.exists():
+            root_file = ROOT.TFile(output_file_path, "READ")
             events_tree = root_file.Get("events")
             if events_tree:  # FIXME: why no else?
                 if events_tree.GetEntries() == int(Nevt_per_job):
@@ -147,7 +164,7 @@ for counter, (theta, momentum, part, dect) in enumerate(iter_of_combined_variabl
         bash_script = (
             "#!/bin/bash \n"
             f"source {environ_path} \n"
-            "git clone https://github.com/Victor-Schwan/TrackingStudies.git \n"  # FIXME: new repo location
+            "git clone https://github.com/Victor-Schwan/TrackingStudies.git \n"  # FIXME: new repo location to config (to switch easily to local fork)
             f"{command} \n"
             f"xrdcp {output_file_name} root://eosuser.cern.ch/{output_dir} \n"
         )

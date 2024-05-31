@@ -166,7 +166,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
         bash_script = (
             "#!/bin/bash \n"
             f"source {environ_path} \n"
-            "git clone https://github.com/gaswk/CLDConfig.git \n"  # FIXME: new repo location in k4hep
+            "git clone https://github.com/gaswk/CLDConfig.git \n"  # FIXME: new repo location to config (to switch easily to local fork)
             "cd " + "CLDConfig/CLDConfig" + "\n"
             f"{command} \n"
             f"xrdcp {output_file_name}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"

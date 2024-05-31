@@ -5,6 +5,7 @@ stable = Path("/cvmfs/sw.hsf.org/key4hep/setup.sh")
 nightlies = Path("/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh")
 setup = nightlies  # choose either stable or nightlies
 
+
 # ==========================
 # define base directories
 # ==========================
@@ -12,23 +13,27 @@ setup = nightlies  # choose either stable or nightlies
 # those files are available to job
 baseAFSDir = Path("/afs/cern.ch/user/") / "v/vschwan/promotion"
 # not directly available to job, only for storing purposes
-baseEOSDir = Path("/eos/") / "home-v/vschwan/promotion/"
+baseEOSDir = Path("/eos/") / "home-v/vschwan/promotion"
 
-# define directory to store output and subdirs
+# define directory to store output
 dataDir = baseEOSDir / "data"
-SIMcondorDir = dataDir / "sim" / "condor_jobs"
-RECcondorDir = dataDir / "rec" / "condor_jobs"
+# define dirs
+SIMcondorDir = baseAFSDir / "sim" / "condor_jobs"
+RECcondorDir = baseAFSDir / "rec" / "condor_jobs"
 # detector specific
+# FIXME: extract following from dict based on detectorModel var?
 detectorDIR = baseAFSDir / "ILDConfig" / "StandardConfig" / "production"
 sim_steering_file = detectorDIR / "TPC_debug_muon_steer.py"
 rec_steering_file = detectorDIR / "ILDReconstruction.py"
+
 
 # ==========================
 # Job Parameters Initialisation
 # ==========================
 
-Nevts_ = "300"
-Nevt_per_job = "100"  # Set the desired number of events per job
+Nevts_ = "1"
+Nevt_per_job = "1"  # Set the desired number of events per job
+
 
 # ==========================
 # Parameters Initialisation
