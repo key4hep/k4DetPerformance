@@ -1,49 +1,18 @@
 #!/usr/bin/env python
 
-import argparse
-import importlib.util
 import sys
 from os import system  # for execution at the end
 from pathlib import Path
 
 import ROOT
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Script to run with user configuration."
-    )
-    parser.add_argument(
-        "--config",
-        type=Path,
-        required=True,
-        help="Path to the configuration file. The suffix '.py' can be omitted.",
-    )
-    return parser.parse_args()
-
-
-def load_config(config_name):
-
-    config_file = Path(config_name)
-
-    # Ensure the config file has the .py extension
-    if config_file.suffix != ".py":
-        config_file = config_file.with_suffix(".py")
-
-    # Create an absolute path
-    config_path = config_file.resolve()
-
-    # Ensure the file exists
-    if not config_path.exists():
-        raise FileNotFoundError(f"The configuration file {config_path} does not exist.")
-
-    spec = importlib.util.spec_from_file_location("config", config_path)
-    config = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(config)
-    return config
+from utils import load_config, parse_args
 
 
 def main():
+
+    # ==========================
+    # Load specified config file
+    # ==========================
 
     args = parse_args()
     config = load_config(args.config)
@@ -221,6 +190,7 @@ def main():
     # ============================
     # Condor Submission Script
     # ============================
+
     # Write the condor submission script
     condor_script = (
         "executable = $(filename) \n"
@@ -239,6 +209,7 @@ def main():
     # ====================
     # Submit Job to Condor
     # ====================
+
     system(
         "cd " + str(directory_jobs) + "; condor_submit condor_script.sub"
     )  # FIXME: use subprocess instead?
