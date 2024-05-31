@@ -1,3 +1,7 @@
+"""
+Victors config file for ILD FCCee models
+"""
+
 from pathlib import Path
 
 # define environment setup script path

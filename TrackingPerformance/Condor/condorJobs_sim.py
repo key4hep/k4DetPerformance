@@ -17,12 +17,26 @@ def parse_args():
         "--config",
         type=Path,
         required=True,
-        help="Path to the configuration file.",
+        help="Path to the configuration file. The suffix '.py' can be omitted.",
     )
     return parser.parse_args()
 
 
-def load_config(config_path):
+def load_config(config_name):
+
+    config_file = Path(config_name)
+
+    # Ensure the config file has the .py extension
+    if config_file.suffix != ".py":
+        config_file = config_file.with_suffix(".py")
+
+    # Create an absolute path
+    config_path = config_file.resolve()
+
+    # Ensure the file exists
+    if not config_path.exists():
+        raise FileNotFoundError(f"The configuration file {config_path} does not exist.")
+
     spec = importlib.util.spec_from_file_location("config", config_path)
     config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(config)
