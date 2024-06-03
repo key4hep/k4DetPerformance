@@ -140,15 +140,14 @@ def main():
                 f" --compactFile $k4geo_DIR/{config.detModPaths['ILD_l5_v11']}",  # Note the change to use double quotes for the dictionary key
                 f"--outputFile {output_file_name}",
                 f"--steeringFile {config.sim_steering_file}",  # "CLDConfig/CLDConfig/cld_steer.py "
-                # TODO: FIX
-                # "--enableGun",
-                # f"--gun.particle {part}-",
-                # f"--gun.energy {momentum}*GeV",
-                # "--gun.distribution uniform",
-                # f"--gun.thetaMin {theta}*deg",
-                # f"--gun.thetaMax {theta}*deg",
-                # "--crossingAngleBoost 0",
-                # f"--numberOfEvents {Nevt_per_job}",
+                "--enableGun",
+                f"--gun.particle {part}-",
+                f"--gun.energy {momentum}*GeV",
+                "--gun.distribution uniform",
+                f"--gun.thetaMin {theta}*deg",
+                f"--gun.thetaMax {theta}*deg",
+                "--crossingAngleBoost 0",
+                f"--numberOfEvents {Nevt_per_job}",
             ]
             command = f"ddsim {' '.join(arguments)} > /dev/null"
 
@@ -156,7 +155,6 @@ def main():
             bash_script = (
                 "#!/bin/bash \n"
                 f"source {environ_path} \n"
-                "git clone https://github.com/Victor-Schwan/TrackingStudies.git \n"  # FIXME: new repo location to config (to switch easily to local fork)
                 f"{command} \n"
                 f"xrdcp {output_file_name} root://eosuser.cern.ch/{output_dir} \n"
             )
