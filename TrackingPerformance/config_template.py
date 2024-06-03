@@ -47,10 +47,10 @@ JOB_FLAVOR = "longlunch"
 # ==========================
 # Parameters Initialisation
 # ==========================
-detectorModel = ["CLD_model_1"]
-detModPaths = {"CLD_model_1": Path("CHANGE/PATH")}  # FIXME
+detectorModel = ["detector_model_1"]
+detModPaths = {"detector_model_1": Path("CHANGE/PATH")}  # FIXME
 # Define lists of parameters for reconstruction
-thetaList_ = ["10"]  # , "20" , "30", "40", "50", "60", "70", "80", "89"
+thetaList_ = ["10", "20"]  # , "30", "40", "50", "60", "70", "80", "89"
 momentumList_ = ["1", "2"]  # , "5", "10", "20", "50", "100", "200"
 # momentumList_ = ["1", "10", "100"]
 particleList_ = ["mu"]  # ,"e" ,"pi"]
