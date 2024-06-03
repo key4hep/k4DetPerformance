@@ -1,3 +1,7 @@
+"""
+copy this template of a config file and adapt it to your needs
+"""
+
 from pathlib import Path
 
 # define environment setup script path
