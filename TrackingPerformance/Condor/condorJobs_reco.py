@@ -5,17 +5,15 @@ from os import system  # for execution at the end
 from pathlib import Path
 
 import ROOT
+from utils import load_config, parse_args
 
 # ==========================
-# Import config
+# Load specified config file
 # ==========================
-# Add the project root directory to the sys.path
-project_root = Path(__file__).resolve().parent.parent
-# Append the project root to sys.path if not already present
-if project_root not in sys.path:
-    sys.path.append(str(project_root))
-# import config
-import config
+
+args = parse_args()
+config = load_config(args.config)
+
 
 # ==========================
 # Parameters Initialisation
@@ -167,7 +165,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
             "#!/bin/bash \n"
             f"source {environ_path} \n"
             "git clone https://github.com/gaswk/CLDConfig.git \n"  # FIXME: see issues
-            "cd " + "CLDConfig/CLDConfig" + "\n" # FIXME: CLD should not be hardcoded 
+            "cd " + "CLDConfig/CLDConfig" + "\n"  # FIXME: CLD should not be hardcoded
             f"{command} \n"
             f"xrdcp {output_file_name}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
             f"xrdcp {output_file_name}_aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
