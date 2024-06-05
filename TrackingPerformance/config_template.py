@@ -35,7 +35,7 @@ rec_steering_file = detectorDIR / "CHANGE" / "PATH"  # FIXME
 # Job Parameters Initialisation
 # ==========================
 
-Nevts_ = 30
+Nevts_ = 30  # lower limit (rounding might be necessary)
 Nevts_per_job = 10  # Set the desired number of events per job
 JOB_FLAVOR = "longlunch"
 # Job flavours:

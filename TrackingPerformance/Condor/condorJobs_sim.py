@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+from math import ceil
 from os import system  # for execution at the end
 from pathlib import Path
 
@@ -46,12 +47,12 @@ def main():
         * len(config.thetaList_)
         * len(config.momentumList_)
     )
-    N_jobs_per_para_set = (  # FIXME
-        config.Nevts_ // config.Nevts_per_job
-    )  # number of parallel jobs with same parameter combination/set
-    N_jobs = (
-        N_jobs_per_para_set * N_para_sets
-    )  # total number of jobs, can be printed for debugging/information
+    # number of parallel jobs with same parameter combination/set
+    N_jobs_per_para_set = ceil(
+        config.Nevts_ / config.Nevts_per_job
+    )  # Nevts is lower limit
+    # total number of jobs, can be printed for debugging/information
+    N_jobs = N_jobs_per_para_set * N_para_sets
 
     # ===========================
     # Directory Setup and Checks

@@ -35,7 +35,7 @@ rec_steering_file = detectorDIR / "ILDReconstruction.py"
 # Job Parameters Initialisation
 # ==========================
 
-Nevts_ = 1
+Nevts_ = 1  # lower limit (rounding might be necessary)
 Nevts_per_job = 1  # Set the desired number of events per job
 JOB_FLAVOR = "espresso"
 # Job flavours:
@@ -56,6 +56,6 @@ detectorModelList = ["ILD_l5_v11"]
 detModPaths = {"ILD_l5_v11": Path("ILD/compact/ILD_l5_v11/ILD_l5_v11.xml")}
 # Define lists of parameters for reconstruction
 thetaList_ = [10]  # , 20 , 30, 40, 50, 60, 70, 80, 89
-momentumList_ = [1, 2]  # , 5, 10, 20, 50, 100, 200
+momentumList_ = [1]  # , 2 , 5, 10, 20, 50, 100, 200
 # momentumList_ = [1, 10, 100]
 particleList_ = ["mu"]  # ,"e" ,"pi"]

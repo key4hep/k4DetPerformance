@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+from math import ceil
 from os import system  # for execution at the end
 from pathlib import Path
 
@@ -24,7 +25,7 @@ N_jobs = (
     * len(config.thetaList_)
     * len(config.momentumList_)
 )
-num_jobs = config.Nevts_ // config.Nevts_per_job  # FIXME
+num_jobs = ceil(config.Nevts_ / config.Nevts_per_job)  # Nevts is lower limit
 
 # ===========================
 # Directory Setup and Checks
