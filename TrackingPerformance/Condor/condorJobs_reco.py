@@ -18,39 +18,25 @@ config = load_config(args.config)
 # ==========================
 # Parameters Initialisation
 # ==========================
-# Define lists of parameters for reconstruction
-thetaList_ = config.thetaList_
-momentumList_ = config.momentumList_
-particleList_ = config.particleList_
-
-DetectorModelList_ = config.detectorModel
-Nevts_ = config.Nevts_
-
-Nevt_per_job = config.Nevt_per_job
 N_jobs = (
-    int(int(Nevts_) / int(Nevt_per_job))
-    * len(particleList_)
-    * len(thetaList_)
-    * len(momentumList_)
+    int(config.Nevts_ / config.Nevts_per_job)
+    * len(config.particleList_)
+    * len(config.thetaList_)
+    * len(config.momentumList_)
 )
-total_events = int(Nevts_)
-num_jobs = total_events // int(Nevt_per_job)
+num_jobs = config.Nevts_ // config.Nevts_per_job  # FIXME
 
 # ===========================
 # Directory Setup and Checks
 # ===========================
 
-# Define environment setup path
-environ_path = config.setup
-
 # Define directories for input and output
-directory_jobs = config.RECcondorDir / f"{particleList_[0]}_{DetectorModelList_[0]}"
+directory_jobs = (
+    config.RECcondorDir / f"{config.particleList_[0]}_{config.detectorModelList[0]}"
+)
 # InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
-SIMEosDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # input
-RECEosDir = config.dataDir / f"{DetectorModelList_[0]}" / "REC"  # output
-
-# steering_file = "CLDReconstruction.py"
-steering_file = config.rec_steering_file
+SIMEosDir = config.dataDir / f"{config.detectorModelList[0]}" / "SIM"  # input
+RECEosDir = config.dataDir / f"{config.detectorModelList[0]}" / "REC"  # output
 
 # Enable output checks
 check_output = True  # Set to True to enable checks, False to disable
@@ -92,7 +78,10 @@ directory_jobs.mkdir(parents=True, exist_ok=True)
 import itertools
 
 list_of_combined_variables = itertools.product(
-    thetaList_, momentumList_, particleList_, DetectorModelList_
+    config.thetaList_,
+    config.momentumList_,
+    config.particleList_,
+    config.detectorModelList,
 )
 
 need_to_create_scripts = False
@@ -105,7 +94,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
             f"{part}",
             f"{theta}_deg",
             f"{momentum}_GeV",
-            f"{Nevt_per_job}_evts",
+            f"{config.Nevts_per_job}_evts",
             f"{task_index}",
         ]
         output_file_name = "_".join(output_file_name_parts)
@@ -115,7 +104,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
             f"{part}",
             f"{theta}_deg",
             f"{momentum}_GeV",
-            f"{Nevt_per_job}_evts",
+            f"{config.Nevts_per_job}_evts",
             f"{task_index}",
         ]
         input_file_name = "_".join(input_file_name_parts)
@@ -136,7 +125,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
         if check_output and output_file.exists():
             root_file = ROOT.TFile(output_file, "READ")
             events_tree = root_file.Get("events")
-            if events_tree and events_tree.GetEntries() == int(Nevt_per_job):
+            if events_tree and events_tree.GetEntries() == config.Nevts_per_job:
                 root_file.Close()
                 continue
             root_file.Close()
@@ -148,7 +137,7 @@ for theta, momentum, part, dect in list_of_combined_variables:
 
         arguments = (
             # f" --GeoSvc.detectors=/afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/{DetectorModelList_[0]}_3T/{DetectorModelList_[0]}.xml"+
-            f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{DetectorModelList_[0]}/{DetectorModelList_[0]}.xml"
+            f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{config.detectorModelList[0]}/{config.detectorModelList[0]}.xml"
             + " --inputFiles "
             + inputFile
             + " --outputBasename  "
@@ -156,14 +145,14 @@ for theta, momentum, part, dect in list_of_combined_variables:
             + f" --VXDDigitiserResUV={ResVDX_UV_[0]}"
             + " --trackingOnly"
             + " -n "
-            + Nevt_per_job
+            + config.Nevts_per_job
         )
-        command = f"k4run {steering_file} " + arguments + " > /dev/null"
+        command = f"k4run {config.rec_steering_file} " + arguments + " > /dev/null"
 
         # Write bash script for job execution
         bash_script = (
             "#!/bin/bash \n"
-            f"source {environ_path} \n"
+            f"source {config.setup} \n"
             "git clone https://github.com/gaswk/CLDConfig.git \n"  # FIXME: see issues
             "cd " + "CLDConfig/CLDConfig" + "\n"  # FIXME: CLD should not be hardcoded
             f"{command} \n"

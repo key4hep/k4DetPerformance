@@ -35,8 +35,8 @@ rec_steering_file = detectorDIR / "CHANGE" / "PATH"  # FIXME
 # Job Parameters Initialisation
 # ==========================
 
-Nevts_ = "30"
-Nevt_per_job = "10"  # Set the desired number of events per job
+Nevts_ = 30
+Nevts_per_job = 10  # Set the desired number of events per job
 JOB_FLAVOR = "longlunch"
 # Job flavours:
 #   espresso     = 20 minutes
@@ -51,10 +51,11 @@ JOB_FLAVOR = "longlunch"
 # ==========================
 # Parameters Initialisation
 # ==========================
-detectorModel = ["detector_model_1"]
+# FIXME: Should this be a list? Often only element 0 accessed
+detectorModelList = ["detector_model_1"]
 detModPaths = {"detector_model_1": Path("CHANGE/PATH")}  # FIXME
 # Define lists of parameters for reconstruction
-thetaList_ = ["10", "20"]  # , "30", "40", "50", "60", "70", "80", "89"
-momentumList_ = ["1", "2"]  # , "5", "10", "20", "50", "100", "200"
-# momentumList_ = ["1", "10", "100"]
+thetaList_ = [10, 20]  # , 30, 40, 50, 60, 70, 80, 89
+momentumList_ = [1, 2]  # , 5, 10, 20, 50, 100, 200
+# momentumList_ = [1, 10, 100]
 particleList_ = ["mu"]  # ,"e" ,"pi"]

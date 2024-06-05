@@ -35,37 +35,33 @@ def main():
     # Parameters Initialisation
     # ==========================
 
-    # Define lists of parameters for reconstruction
-    thetaList_ = config.thetaList_
-    momentumList_ = config.momentumList_
-    particleList_ = config.particleList_
+    assert isinstance(config.Nevts_, int), "config.Nevts_ must be of type integer"
+    assert isinstance(
+        config.Nevts_per_job, int
+    ), "config.Nevts_per_job must be of type integer"
 
-    DetectorModelList_ = config.detectorModel
-    Nevts_ = config.Nevts_
-    Nevt_per_job = config.Nevt_per_job  # Set the desired number of events per job
-
-    total_events = int(Nevts_)
     N_para_sets = (
-        len(DetectorModelList_)
-        * len(particleList_)
-        * len(thetaList_)
-        * len(momentumList_)
+        len(config.detectorModelList)
+        * len(config.particleList_)
+        * len(config.thetaList_)
+        * len(config.momentumList_)
     )
-    N_jobs_per_para_set = total_events // int(
-        Nevt_per_job
+    N_jobs_per_para_set = (  # FIXME
+        config.Nevts_ // config.Nevts_per_job
     )  # number of parallel jobs with same parameter combination/set
-    N_jobs = N_jobs_per_para_set * N_para_sets  # total number of jobs
+    N_jobs = (
+        N_jobs_per_para_set * N_para_sets
+    )  # total number of jobs, can be printed for debugging/information
 
     # ===========================
     # Directory Setup and Checks
     # ===========================
 
-    # Define environment setup path
-    environ_path = config.setup
-
     # Define directories for input and output
-    directory_jobs = config.SIMcondorDir / f"{particleList_[0]}_{DetectorModelList_[0]}"
-    SIMEOSDir = config.dataDir / f"{DetectorModelList_[0]}" / "SIM"  # output
+    directory_jobs = (
+        config.SIMcondorDir / f"{config.particleList_[0]}_{config.detectorModelList[0]}"
+    )
+    SIMEOSDir = config.dataDir / f"{config.detectorModelList[0]}" / "SIM"  # output
 
     # Enable output checks
     CHECK_OUTPUT = True
@@ -96,7 +92,10 @@ def main():
     import itertools
 
     iter_of_combined_variables = itertools.product(
-        thetaList_, momentumList_, particleList_, DetectorModelList_
+        config.thetaList_,
+        config.momentumList_,
+        config.particleList_,
+        config.detectorModelList,
     )
 
     need_to_create_scripts = False
@@ -109,7 +108,7 @@ def main():
                 f"{part}",
                 f"{theta}_deg",
                 f"{momentum}_GeV",
-                f"{Nevt_per_job}_evts",
+                f"{config.Nevts_per_job}_evts",
                 f"{task_index}",
             ]
             output_file_name = Path("_".join(output_file_name_parts)).with_suffix(
@@ -124,7 +123,7 @@ def main():
                 root_file = ROOT.TFile(output_file_path, "READ")
                 events_tree = root_file.Get("events")
                 if events_tree:  # FIXME: why no else?
-                    if events_tree.GetEntries() == int(Nevt_per_job):
+                    if events_tree.GetEntries() == config.Nevts_per_job:
                         root_file.Close()
                         continue
                 root_file.Close()
@@ -147,14 +146,14 @@ def main():
                 f"--gun.thetaMin {theta}*deg",
                 f"--gun.thetaMax {theta}*deg",
                 "--crossingAngleBoost 0",
-                f"--numberOfEvents {Nevt_per_job}",
+                f"--numberOfEvents {config.Nevts_per_job}",
             ]
             command = f"ddsim {' '.join(arguments)} > /dev/null"
 
             # Write bash script for job execution
             bash_script = (
                 "#!/bin/bash \n"
-                f"source {environ_path} \n"
+                f"source {config.setup} \n"
                 f"{command} \n"
                 f"xrdcp {output_file_name} root://eosuser.cern.ch/{output_dir} \n"
             )
