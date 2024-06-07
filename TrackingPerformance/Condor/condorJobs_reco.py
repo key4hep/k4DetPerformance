@@ -19,13 +19,17 @@ config = load_config(args.config)
 # ==========================
 # Parameters Initialisation
 # ==========================
-N_jobs = (
-    int(config.Nevts_ / config.Nevts_per_job)
+
+N_para_sets = (
+    len(config.detectorModelList)
     * len(config.particleList_)
     * len(config.thetaList_)
     * len(config.momentumList_)
 )
-num_jobs = ceil(config.Nevts_ / config.Nevts_per_job)  # Nevts is lower limit
+# number of parallel jobs with same parameter combination/set
+N_jobs_per_para_set = ceil(config.Nevts_ / config.Nevts_per_job)  # Nevts is lower limit
+# total number of jobs, can be printed for debugging/information
+N_jobs = N_jobs_per_para_set * N_para_sets
 
 # ===========================
 # Directory Setup and Checks
@@ -78,7 +82,7 @@ directory_jobs.mkdir(parents=True, exist_ok=True)
 # Create all possible combinations
 import itertools
 
-list_of_combined_variables = itertools.product(
+iter_of_combined_variables = itertools.product(
     config.thetaList_,
     config.momentumList_,
     config.particleList_,
@@ -87,8 +91,8 @@ list_of_combined_variables = itertools.product(
 
 need_to_create_scripts = False
 
-for theta, momentum, part, dect in list_of_combined_variables:
-    for task_index in range(num_jobs):
+for theta, momentum, part, dect in iter_of_combined_variables:
+    for task_index in range(N_jobs_per_para_set):
 
         output_file_name_parts = [
             f"REC_{dect}",
@@ -164,9 +168,9 @@ for theta, momentum, part, dect in list_of_combined_variables:
             directory_jobs
             + f"/bash_script_{dect}_{part}_{momentum}_{theta}_{task_index}.sh"
         )
-        with open(bash_file, "w") as file:
-            file.write(bash_script)
-            file.close()
+        with open(bash_file, "w") as b_file:
+            b_file.write(bash_script)
+            b_file.close()
 
 if not need_to_create_scripts:
     print("All output files are correct.")
@@ -186,9 +190,9 @@ condor_script = (
     "queue filename matching files *.sh \n"
 )
 condor_file = directory_jobs + "/condor_script.sub"
-with open(condor_file, "w") as file2:
-    file2.write(condor_script)
-    file2.close()
+with open(condor_file, "w") as c_file:
+    c_file.write(condor_script)
+    c_file.close()
 
 # ====================
 # Submit Job to Condor
