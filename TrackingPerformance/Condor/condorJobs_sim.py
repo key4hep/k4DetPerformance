@@ -26,9 +26,6 @@ def main():
         config.sim_steering_file.exists()
     ), f"The file {config.sim_steering_file} does not exist"
     assert (
-        config.rec_steering_file.exists()
-    ), f"The file {config.rec_steering_file} does not exist"
-    assert (
         config.detectorDIR.exists()
     ), f"The folder {config.detectorDIR} does not exist"
 
@@ -99,7 +96,7 @@ def main():
         config.detectorModelList,
     )
 
-    need_to_create_scripts = False
+    NEED_TO_CREATE_SCRIPTS = False
 
     for theta, momentum, part, dect in iter_of_combined_variables:
         for task_index in range(N_jobs_per_para_set):
@@ -120,16 +117,18 @@ def main():
             output_dir = SIMEOSDir / part
             output_dir.mkdir(parents=True, exist_ok=True)
             output_file_path = output_dir / output_file_name
+
+            # FIXME: Issue #4
             if CHECK_OUTPUT and output_file_path.exists():
                 root_file = ROOT.TFile(output_file_path, "READ")
                 events_tree = root_file.Get("events")
-                if events_tree:  # FIXME: why no else?
+                if events_tree:
                     if events_tree.GetEntries() == config.Nevts_per_job:
                         root_file.Close()
                         continue
                 root_file.Close()
             else:
-                need_to_create_scripts = True
+                NEED_TO_CREATE_SCRIPTS = True
 
             # if len(DetectorModelList_) != 1 or DetectorModelList_[0] != "ILD_l5_v11":
             #     raise ValueError("so far only ILD_l5_v11 possible")
@@ -166,15 +165,15 @@ def main():
                 f"{momentum}_GeV",
                 str(task_index),
             ]
-            bash_file = (directory_jobs / "_".join(bash_file_name_parts)).with_suffix(
-                ".sh"
-            )
+            bash_file_path = (
+                directory_jobs / "_".join(bash_file_name_parts)
+            ).with_suffix(".sh")
 
-            with open(bash_file, "w", encoding="utf-8") as b_file:
-                b_file.write(bash_script)
-                b_file.close()
+            with open(bash_file_path, "w", encoding="utf-8") as bash_file:
+                bash_file.write(bash_script)
+                bash_file.close()
 
-    if not need_to_create_scripts:
+    if not NEED_TO_CREATE_SCRIPTS:
         print("All output files are correct.")
         sys.exit(0)
 
@@ -192,10 +191,10 @@ def main():
         f'+JobFlavour = "{config.JOB_FLAVOR}" \n'
         "queue filename matching files *.sh \n"
     )
-    condor_file = directory_jobs / "condor_script.sub"
-    with open(condor_file, "w", encoding="utf-8") as c_file:
-        c_file.write(condor_script)
-        c_file.close()
+    condor_file_path = directory_jobs / "condor_script.sub"
+    with open(condor_file_path, "w", encoding="utf-8") as condor_file:
+        condor_file.write(condor_script)
+        condor_file.close()
 
     # ====================
     # Submit Job to Condor
