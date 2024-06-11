@@ -130,7 +130,7 @@ def main():
             # Check if the output file already exists and has correct Nb of events
             output_dir = rec_eos_dir / part
             output_dir.mkdir(parents=True, exist_ok=True)
-            output_file = (output_dir / output_file_name).with_suffix("_edm4hep.root")
+            output_file = (output_dir / output_file_name).with_suffix(".edm4hep.root")
 
             # FIXME: Issue #4
             if CHECK_OUTPUT and output_file.exists():
@@ -149,13 +149,13 @@ def main():
             arguments = (
                 f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{config.detector_model_list[0]}/{config.detector_model_list[0]}.xml"
                 + " --inputFiles "
-                + input_file
+                + fspath(input_file)
                 + " --outputBasename  "
-                + output_file_name
+                + fspath(output_file_name)
                 + f" --VXDDigitiserResUV={ResVDX_UV_[0]}"
                 + " --trackingOnly"
                 + " -n "
-                + config.N_EVTS_PER_JOB
+                + str(config.N_EVTS_PER_JOB)
             )
             command = f"k4run {config.rec_steering_file} " + arguments + " > /dev/null"
 
@@ -163,12 +163,12 @@ def main():
             bash_script = (
                 "#!/bin/bash \n"
                 f"source {config.setup} \n"
-                "git clone https://github.com/gaswk/CLDConfig.git \n"  # FIXME: see issues
+                "git clone https://github.com/key4hep/CLDConfig.git \n"  # FIXME: see issues
                 "cd "
-                + "CLDConfig/CLDConfig"
-                + "\n"  # FIXME: CLD should not be hardcoded
+                + "CLDConfig/CLDConfig"  # FIXME: CLD should not be hardcoded
+                + "\n"
                 f"{command} \n"
-                f"xrdcp {output_file_name}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
+                f"xrdcp {output_file_name}.edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
                 f"xrdcp {output_file_name}_aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
             )
             bash_file_name_parts = [
