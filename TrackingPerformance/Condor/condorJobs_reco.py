@@ -63,13 +63,6 @@ def main():
     # It will check if the ouputs exist and contain correct number of events
     # if not it will send job to rerun reconstruction
 
-    # Set default value if ResVDX_UV_ is not defined or empty
-    try:
-        if not ResVDX_UV_:
-            ResVDX_UV_ = ["0.003"]
-    except NameError:
-        ResVDX_UV_ = ["0.003"]
-
     # Check if the directory exists and exit if it does
     if directory_jobs.exists():
         print(
@@ -152,7 +145,6 @@ def main():
                 + fspath(input_file)
                 + " --outputBasename  "
                 + fspath(output_file_name)
-                + f" --VXDDigitiserResUV={ResVDX_UV_[0]}"
                 + " --trackingOnly"
                 + " -n "
                 + str(config.N_EVTS_PER_JOB)
