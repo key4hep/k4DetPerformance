@@ -1,40 +1,36 @@
-import sys
-from os.path import dirname, abspath, join
+from ..Condor.utils import (  # FIXME: https://pylint.readthedocs.io/en/latest/user_guide/messages/error/relative-beyond-top-level.html
+    load_config,
+    parse_args,
+)
 
-# Add the project root directory to the sys.path
-project_root = dirname(dirname(abspath(__file__)))
-# Append the project root to sys.path if not already present
-if project_root not in sys.path:
-    sys.path.append(project_root)
+# ==========================
+# Load specified config file
+# ==========================
 
-# import config
-import config
+args = parse_args()
+config = load_config(args.config)
 
 # ==========================
 # Parameters Initialisation
 # ==========================
-# Define lists of parameters for reconstruction
-thetaList_ = config.thetaList_
-momentumList_ = config.momentumList_
-particleList_ = config.particleList_
-
-DetectorModel = config.detectorModel
-Nevts_ = config.Nevts_
-Nevt_per_job = config.Nevt_per_job  # Set the desired number of events per job
 
 # Output and input directories
-outputDir = join(config.dataDir, f"TrackingPerformance/{DetectorModel[0]}/analysis/")
-inputDir = join(config.dataDir, f"TrackingPerformance/{DetectorModel[0]}/REC/")
+output_dir = (
+    config.data_dir / f"TrackingPerformance/{config.detector_model_list[0]}/analysis"
+)
+input_dir = config.data_dir / f"TrackingPerformance/{config.detector_model_list[0]}/REC"
 
 
 processList = {
-    f"REC_{DetectorModel[0]}_{particle}_{theta}_deg_{momentum}_GeV_{Nevts_per_job}_evts_{i}_edm4hep": {
-        "output": f"{particle}_{theta}deg_{momentum}GeV_{Nevts_per_job}evts_{i}"
+    f"REC_{config.detector_model_list[0]}_{particle}_{theta}_deg_{momentum}_GeV_{config.N_EVTS_PER_JOB}_evts_{i}_edm4hep": {
+        "output": f"{particle}_{theta}deg_{momentum}GeV_{config.N_EVTS_PER_JOB}evts_{i}"
     }
-    for particle in ParticleList
-    for theta in ThetaList
-    for momentum in MomentumList
-    for i in range(int(Nevts) // int(Nevts_per_job))
+    for particle in config.particle_list
+    for theta in config.theta_list
+    for momentum in config.momentum_list
+    for i in range(
+        config.N_EVTS // config.N_EVTS_PER_JOB
+    )  # FIXME: use ceil from math instead?
 }
 
 # Optional: ncpus, default is 4, -1 uses all cores available

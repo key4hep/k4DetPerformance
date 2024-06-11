@@ -132,15 +132,11 @@ def main():
             else:
                 NEED_TO_CREATE_SCRIPTS = True
 
-            # if len(DetectorModelList_) != 1 or DetectorModelList_[0] != "ILD_l5_v11":
-            #     raise ValueError("so far only ILD_l5_v11 possible")
-
             # Build ddsim command
             arguments = [
-                # f" --compactFile /afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/{DetectorModelList_[0]}_3T/{DetectorModelList_[0]}.xml "
-                f" --compactFile $k4geo_DIR/{config.det_mod_paths['ILD_l5_v11']}",  # Note the change to use double quotes for the dictionary key
+                f" --compactFile {Path('$k4geo_DIR') / config.det_mod_paths[config.detector_model_list[0]]}",
                 f"--outputFile {output_file_name}",
-                f"--steeringFile {config.sim_steering_file}",  # "CLDConfig/CLDConfig/cld_steer.py "
+                f"--steeringFile {config.sim_steering_file}",
                 "--enableGun",
                 f"--gun.particle {part}-",
                 f"--gun.energy {momentum}*GeV",
@@ -158,6 +154,7 @@ def main():
                 f"source {config.setup} \n"
                 f"{command} \n"
                 f"xrdcp {output_file_name} root://eosuser.cern.ch/{output_dir} \n"
+                f"rm {output_file_name}"
             )
             bash_file_name_parts = [
                 "bash_script",

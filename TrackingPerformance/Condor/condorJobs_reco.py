@@ -121,9 +121,7 @@ def main():
             input_file_path = Path("_".join(input_file_name_parts)).with_suffix(
                 ".edm4hep.root"
             )
-            input_file = (
-                sim_eos_dir / part / input_file_path
-            )  # FIXME: reasonable that part is twice in the path?
+            input_file = sim_eos_dir / part / input_file_path
 
             # Check if the input file exists
             if not input_file.exists():
