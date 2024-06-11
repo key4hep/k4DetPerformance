@@ -17,7 +17,7 @@ setup = nightlies  # choose either stable or nightlies
 # those files are available to job
 baseAFSDir = Path("/afs/cern.ch/user/") / "v/vschwan/promotion"
 # not directly available to job, only for storing purposes
-baseEOSDir = Path("/eos/") / "home-v/vschwan/promotion"
+baseEOSDir = Path("/eos/") / "user/v/vschwan/promotion"
 
 # define directory to store output
 dataDir = baseEOSDir / "data"
