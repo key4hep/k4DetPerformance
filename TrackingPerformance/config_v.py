@@ -15,28 +15,28 @@ setup = nightlies  # choose either stable or nightlies
 # ==========================
 
 # those files are available to job
-baseAFSDir = Path("/afs/cern.ch/user/") / "v/vschwan/promotion"
+base_afs_dir = Path("/afs/cern.ch/user") / "v/vschwan/promotion"
 # not directly available to job, only for storing purposes
-baseEOSDir = Path("/eos/") / "user/v/vschwan/promotion"
+base_eos_dir = Path("/eos/user") / "v/vschwan/promotion"
 
 # define directory to store output
-dataDir = baseEOSDir / "data"
+data_dir = base_eos_dir / "data"
 # define dirs
-SIMcondorDir = baseAFSDir / "sim" / "condor_jobs"
-RECcondorDir = baseAFSDir / "rec" / "condor_jobs"
+sim_condor_dir = base_afs_dir / "sim" / "condor_jobs"
+rec_condor_dir = base_afs_dir / "rec" / "condor_jobs"
 # detector specific
 # FIXME: extract following from dict based on detectorModel var?
-detectorDIR = baseAFSDir / "ILDConfig" / "StandardConfig" / "production"
-sim_steering_file = detectorDIR / "TPC_debug_muon_steer.py"
-rec_steering_file = detectorDIR / "ILDReconstruction.py"
+detector_dir = base_afs_dir / "ILDConfig" / "StandardConfig" / "production"
+sim_steering_file = detector_dir / "TPC_debug_muon_steer.py"
+rec_steering_file = detector_dir / "ILDReconstruction.py"
 
 
 # ==========================
 # Job Parameters Initialisation
 # ==========================
 
-Nevts_ = 1  # lower limit (rounding might be necessary)
-Nevts_per_job = 1  # Set the desired number of events per job
+N_EVTS = 1  # lower limit (rounding might be necessary)
+N_EVTS_PER_JOB = 1  # Set the desired number of events per job
 JOB_FLAVOR = "espresso"
 # Job flavours:
 #   espresso     = 20 minutes
@@ -52,10 +52,10 @@ JOB_FLAVOR = "espresso"
 # Parameters Initialisation
 # ==========================
 # FIXME: Should this be a list? Often only element 0 accessed
-detectorModelList = ["ILD_l5_v11"]
-detModPaths = {"ILD_l5_v11": Path("ILD/compact/ILD_l5_v11/ILD_l5_v11.xml")}
+detector_model_list = ["ILD_l5_v11"]
+det_mod_paths = {"ILD_l5_v11": Path("ILD/compact/ILD_l5_v11/ILD_l5_v11.xml")}
 # Define lists of parameters for reconstruction
-thetaList_ = [10]  # , 20 , 30, 40, 50, 60, 70, 80, 89
-momentumList_ = [1]  # , 2 , 5, 10, 20, 50, 100, 200
+theta_list = [10]  # , 20 , 30, 40, 50, 60, 70, 80, 89
+momentum_list = [1]  # , 2 , 5, 10, 20, 50, 100, 200
 # momentumList_ = [1, 10, 100]
-particleList_ = ["mu"]  # ,"e" ,"pi"]
+particle_list = ["mu"]  # ,"e" ,"pi"]

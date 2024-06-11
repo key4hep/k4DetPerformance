@@ -2,7 +2,7 @@
 
 import sys
 from math import ceil
-from os import system  # for execution at the end
+from os import fspath, system  # for execution at the end
 from pathlib import Path
 
 import ROOT
@@ -26,30 +26,30 @@ def main():
         config.sim_steering_file.exists()
     ), f"The file {config.sim_steering_file} does not exist"
     assert (
-        config.detectorDIR.exists()
-    ), f"The folder {config.detectorDIR} does not exist"
+        config.detector_dir.exists()
+    ), f"The folder {config.detector_dir} does not exist"
 
     # ==========================
     # Parameters Initialisation
     # ==========================
 
-    assert isinstance(config.Nevts_, int), "config.Nevts_ must be of type integer"
+    assert isinstance(config.N_EVTS, int), "config.N_EVTS must be of type integer"
     assert isinstance(
-        config.Nevts_per_job, int
-    ), "config.Nevts_per_job must be of type integer"
+        config.N_EVTS_PER_JOB, int
+    ), "config.N_EVTS_PER_JOB must be of type integer"
 
-    N_para_sets = (
-        len(config.detectorModelList)
-        * len(config.particleList_)
-        * len(config.thetaList_)
-        * len(config.momentumList_)
+    n_para_sets = (
+        len(config.detector_model_list)
+        * len(config.particle_list)
+        * len(config.theta_list)
+        * len(config.momentum_list)
     )
     # number of parallel jobs with same parameter combination/set
-    N_jobs_per_para_set = ceil(
-        config.Nevts_ / config.Nevts_per_job
+    n_jobs_per_para_set = ceil(
+        config.N_EVTS / config.N_EVTS_PER_JOB
     )  # Nevts is lower limit
     # total number of jobs, can be printed for debugging/information
-    N_jobs = N_jobs_per_para_set * N_para_sets
+    n_jobs = n_jobs_per_para_set * n_para_sets
 
     # ===========================
     # Directory Setup and Checks
@@ -57,13 +57,15 @@ def main():
 
     # Define directories for input and output
     directory_jobs = (
-        config.SIMcondorDir / f"{config.particleList_[0]}_{config.detectorModelList[0]}"
+        config.sim_condor_dir
+        / f"{config.particle_list[0]}_{config.detector_model_list[0]}"
     )
-    SIMEOSDir = config.dataDir / f"{config.detectorModelList[0]}" / "SIM"  # output
+    sim_eos_dir = config.data_dir / f"{config.detector_model_list[0]}" / "SIM"  # output
 
     # Enable output checks
     CHECK_OUTPUT = True
     """
+    -does not work-
     Set to True to enable checks, False to disable
     It will check if the ouputs exist and contain correct number of events
     if not it will send job to rerun simulation
@@ -78,7 +80,7 @@ def main():
         )
         sys.exit(1)
 
-    SIMEOSDir.mkdir(
+    sim_eos_dir.mkdir(
         parents=True, exist_ok=True
     )  # This will create the directory if it doesn't exist, without raising an error if it does
 
@@ -90,23 +92,23 @@ def main():
     import itertools
 
     iter_of_combined_variables = itertools.product(
-        config.thetaList_,
-        config.momentumList_,
-        config.particleList_,
-        config.detectorModelList,
+        config.theta_list,
+        config.momentum_list,
+        config.particle_list,
+        config.detector_model_list,
     )
 
     NEED_TO_CREATE_SCRIPTS = False
 
     for theta, momentum, part, dect in iter_of_combined_variables:
-        for task_index in range(N_jobs_per_para_set):
+        for task_index in range(n_jobs_per_para_set):
 
             output_file_name_parts = [
                 f"SIM_{dect}",
                 f"{part}",
                 f"{theta}_deg",
                 f"{momentum}_GeV",
-                f"{config.Nevts_per_job}_evts",
+                f"{config.N_EVTS_PER_JOB}_evts",
                 f"{task_index}",
             ]
             output_file_name = Path("_".join(output_file_name_parts)).with_suffix(
@@ -114,16 +116,16 @@ def main():
             )
 
             # Check if the output file already exists and has correct Nb of events
-            output_dir = SIMEOSDir / part
+            output_dir = sim_eos_dir / part
             output_dir.mkdir(parents=True, exist_ok=True)
             output_file_path = output_dir / output_file_name
 
             # FIXME: Issue #4
             if CHECK_OUTPUT and output_file_path.exists():
-                root_file = ROOT.TFile(output_file_path, "READ")
+                root_file = ROOT.TFile(fspath(output_file_path), "READ")
                 events_tree = root_file.Get("events")
                 if events_tree:
-                    if events_tree.GetEntries() == config.Nevts_per_job:
+                    if events_tree.GetEntries() == config.N_EVTS_PER_JOB:
                         root_file.Close()
                         continue
                 root_file.Close()
@@ -136,7 +138,7 @@ def main():
             # Build ddsim command
             arguments = [
                 # f" --compactFile /afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/{DetectorModelList_[0]}_3T/{DetectorModelList_[0]}.xml "
-                f" --compactFile $k4geo_DIR/{config.detModPaths['ILD_l5_v11']}",  # Note the change to use double quotes for the dictionary key
+                f" --compactFile $k4geo_DIR/{config.det_mod_paths['ILD_l5_v11']}",  # Note the change to use double quotes for the dictionary key
                 f"--outputFile {output_file_name}",
                 f"--steeringFile {config.sim_steering_file}",  # "CLDConfig/CLDConfig/cld_steer.py "
                 "--enableGun",
@@ -146,7 +148,7 @@ def main():
                 f"--gun.thetaMin {theta}*deg",
                 f"--gun.thetaMax {theta}*deg",
                 "--crossingAngleBoost 0",
-                f"--numberOfEvents {config.Nevts_per_job}",
+                f"--numberOfEvents {config.N_EVTS_PER_JOB}",
             ]
             command = f"ddsim {' '.join(arguments)} > /dev/null"
 
@@ -175,6 +177,7 @@ def main():
 
     if not NEED_TO_CREATE_SCRIPTS:
         print("All output files are correct.")
+        print(f"The output file path: {output_file_path}")
         sys.exit(0)
 
     # ============================
@@ -201,7 +204,7 @@ def main():
     # ====================
 
     system(
-        "cd " + str(directory_jobs) + "; condor_submit condor_script.sub"
+        "cd " + fspath(directory_jobs) + "; condor_submit condor_script.sub"
     )  # FIXME: use subprocess instead?
 
 

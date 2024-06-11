@@ -2,7 +2,7 @@
 
 import sys
 from math import ceil
-from os import system  # for execution at the end
+from os import fspath, system  # for execution at the end
 from pathlib import Path
 
 import ROOT
@@ -26,25 +26,25 @@ def main():
         config.rec_steering_file.exists()
     ), f"The file {config.rec_steering_file} does not exist"
     assert (
-        config.detectorDIR.exists()
-    ), f"The folder {config.detectorDIR} does not exist"
+        config.detector_dir.exists()
+    ), f"The folder {config.detector_dir} does not exist"
 
     # ==========================
     # Parameters Initialisation
     # ==========================
 
-    N_para_sets = (
-        len(config.detectorModelList)
-        * len(config.particleList_)
-        * len(config.thetaList_)
-        * len(config.momentumList_)
+    n_para_sets = (
+        len(config.detector_model_list)
+        * len(config.particle_list)
+        * len(config.theta_list)
+        * len(config.momentum_list)
     )
     # number of parallel jobs with same parameter combination/set
-    N_jobs_per_para_set = ceil(
-        config.Nevts_ / config.Nevts_per_job
+    n_jobs_per_para_set = ceil(
+        config.N_EVTS / config.N_EVTS_PER_JOB
     )  # Nevts is lower limit
     # total number of jobs, can be printed for debugging/information
-    N_jobs = N_jobs_per_para_set * N_para_sets
+    n_jobs = n_jobs_per_para_set * n_para_sets
 
     # ===========================
     # Directory Setup and Checks
@@ -52,11 +52,11 @@ def main():
 
     # Define directories for input and output
     directory_jobs = (
-        config.RECcondorDir / f"{config.particleList_[0]}_{config.detectorModelList[0]}"
+        config.rec_condor_dir
+        / f"{config.particle_list[0]}_{config.detector_model_list[0]}"
     )
-    # InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
-    SIMEOSDir = config.dataDir / f"{config.detectorModelList[0]}" / "SIM"  # input
-    RECEOSDir = config.dataDir / f"{config.detectorModelList[0]}" / "REC"  # output
+    sim_eos_dir = config.data_dir / f"{config.detector_model_list[0]}" / "SIM"  # input
+    rec_eos_dir = config.data_dir / f"{config.detector_model_list[0]}" / "REC"  # output
 
     # Enable output checks
     CHECK_OUTPUT = True  # Set to True to enable checks, False to disable
@@ -78,7 +78,7 @@ def main():
         sys.exit(1)
 
     # Create output directories if they don't exist
-    RECEOSDir.mkdir(parents=True, exist_ok=True)
+    rec_eos_dir.mkdir(parents=True, exist_ok=True)
     directory_jobs.mkdir(parents=True, exist_ok=True)
 
     # =======================
@@ -89,23 +89,23 @@ def main():
     import itertools
 
     iter_of_combined_variables = itertools.product(
-        config.thetaList_,
-        config.momentumList_,
-        config.particleList_,
-        config.detectorModelList,
+        config.theta_list,
+        config.momentum_list,
+        config.particle_list,
+        config.detector_model_list,
     )
 
     NEED_TO_CREATE_SCRIPTS = False
 
     for theta, momentum, part, dect in iter_of_combined_variables:
-        for task_index in range(N_jobs_per_para_set):
+        for task_index in range(n_jobs_per_para_set):
 
             output_file_name_parts = [
                 f"REC_{dect}",
                 f"{part}",
                 f"{theta}_deg",
                 f"{momentum}_GeV",
-                f"{config.Nevts_per_job}_evts",
+                f"{config.N_EVTS_PER_JOB}_evts",
                 f"{task_index}",
             ]
             output_file_name = "_".join(output_file_name_parts)
@@ -115,30 +115,30 @@ def main():
                 f"{part}",
                 f"{theta}_deg",
                 f"{momentum}_GeV",
-                f"{config.Nevts_per_job}_evts",
+                f"{config.N_EVTS_PER_JOB}_evts",
                 f"{task_index}",
             ]
             input_file_path = Path("_".join(input_file_name_parts)).with_suffix(
                 ".edm4hep.root"
             )
-            inputFile = (
-                SIMEOSDir / part / input_file_path
+            input_file = (
+                sim_eos_dir / part / input_file_path
             )  # FIXME: reasonable that part is twice in the path?
 
             # Check if the input file exists
-            if not inputFile.exists():
-                print(f"Error: Input file {inputFile} does not exist. Skipping job.")
+            if not input_file.exists():
+                print(f"Error: Input file {input_file} does not exist. Skipping job.")
                 continue
             # Check if the output file already exists and has correct Nb of events
-            output_dir = RECEOSDir / part
+            output_dir = rec_eos_dir / part
             output_dir.mkdir(parents=True, exist_ok=True)
             output_file = (output_dir / output_file_name).with_suffix("_edm4hep.root")
 
             # FIXME: Issue #4
             if CHECK_OUTPUT and output_file.exists():
-                root_file = ROOT.TFile(output_file, "READ")
+                root_file = ROOT.TFile(fspath(output_file), "READ")
                 events_tree = root_file.Get("events")
-                if events_tree and events_tree.GetEntries() == config.Nevts_per_job:
+                if events_tree and events_tree.GetEntries() == config.N_EVTS_PER_JOB:
                     root_file.Close()
                     continue
                 root_file.Close()
@@ -149,16 +149,15 @@ def main():
             output_dir_aida.mkdir(exist_ok=True)
 
             arguments = (
-                # f" --GeoSvc.detectors=/afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/{DetectorModelList_[0]}_3T/{DetectorModelList_[0]}.xml"+
-                f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{config.detectorModelList[0]}/{config.detectorModelList[0]}.xml"
+                f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{config.detector_model_list[0]}/{config.detector_model_list[0]}.xml"
                 + " --inputFiles "
-                + inputFile
+                + input_file
                 + " --outputBasename  "
                 + output_file_name
                 + f" --VXDDigitiserResUV={ResVDX_UV_[0]}"
                 + " --trackingOnly"
                 + " -n "
-                + config.Nevts_per_job
+                + config.N_EVTS_PER_JOB
             )
             command = f"k4run {config.rec_steering_file} " + arguments + " > /dev/null"
 
@@ -216,7 +215,7 @@ def main():
     # Submit Job to Condor
     # ====================
     system(
-        "cd " + str(directory_jobs) + "; condor_submit condor_script.sub"
+        "cd " + fspath(directory_jobs) + "; condor_submit condor_script.sub"
     )  # FIXME: use subprocess instead?
 
 
