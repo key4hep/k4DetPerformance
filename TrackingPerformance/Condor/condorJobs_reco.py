@@ -161,7 +161,7 @@ def main():
                 + "\n"
                 f"{command} \n"
                 f"xrdcp {output_file_name}.edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
-                f"xrdcp {output_file_name}_aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
+                f"xrdcp {output_file_name}.aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
             )
             bash_file_name_parts = [
                 "bash_script",
