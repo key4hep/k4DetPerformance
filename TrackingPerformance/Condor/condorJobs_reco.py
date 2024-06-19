@@ -111,9 +111,15 @@ def main() -> None:
                 f"{config.N_EVTS_PER_JOB}_evts",
                 f"{task_index}",
             ]
-            input_file_path = Path("_".join(input_file_name_parts)).with_suffix(
-                ".edm4hep.root"
-            )
+            if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE:
+                input_file_name_parts.append("edm4hep")
+                input_file_path = Path("_".join(input_file_name_parts)).with_suffix(
+                    ".root"
+                )
+            else:
+                input_file_path = Path("_".join(input_file_name_parts)).with_suffix(
+                    ".edm4hep.root"
+                )
             input_file = sim_eos_dir / part / input_file_path
 
             # Check if the input file exists
@@ -123,7 +129,14 @@ def main() -> None:
             # Check if the output file already exists and has correct Nb of events
             output_dir = rec_eos_dir / part
             output_dir.mkdir(parents=True, exist_ok=True)
-            output_file = (output_dir / output_file_name).with_suffix(".edm4hep.root")
+            if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE:
+                output_file = (
+                    output_dir / (output_file_name + "_edm4hep")
+                ).with_suffix(".root")
+            else:
+                output_file = (output_dir / output_file_name).with_suffix(
+                    ".edm4hep.root"
+                )
 
             # FIXME: Issue #4
             if CHECK_OUTPUT and output_file.exists():
@@ -160,8 +173,8 @@ def main() -> None:
                 + "CLDConfig/CLDConfig"  # FIXME: CLD should not be hardcoded
                 + "\n"
                 f"{command} \n"
-                f"xrdcp {output_file_name}.edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
-                f"xrdcp {output_file_name}.aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
+                f"xrdcp {output_file_name}{'_' if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE else '.'}edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
+                f"xrdcp {output_file_name}{'_' if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE else '.'}aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
             )
             bash_file_name_parts = [
                 "bash_script",

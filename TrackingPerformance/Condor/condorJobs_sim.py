@@ -111,9 +111,16 @@ def main() -> None:
                 f"{config.N_EVTS_PER_JOB}_evts",
                 f"{task_index}",
             ]
-            output_file_name = Path("_".join(output_file_name_parts)).with_suffix(
-                ".edm4hep.root"
-            )
+
+            if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE:
+                output_file_name_parts.append("edm4hep")
+                output_file_name = Path("_".join(output_file_name_parts)).with_suffix(
+                    ".root"
+                )
+            else:
+                output_file_name = Path("_".join(output_file_name_parts)).with_suffix(
+                    ".edm4hep.root"
+                )
 
             # Check if the output file already exists and has correct Nb of events
             output_dir = sim_eos_dir / part

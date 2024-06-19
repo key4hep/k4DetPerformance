@@ -9,6 +9,8 @@ stable = Path("/cvmfs/sw.hsf.org/key4hep/setup.sh")
 nightlies = Path("/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh")
 setup = nightlies  # choose either stable or nightlies
 
+# False: filepath_edm4hep.root; False: filepath.edm4hep.root
+EDM4HEP_SUFFIX_WITH_UNDERSCORE = False
 
 # ==========================
 # define base directories
