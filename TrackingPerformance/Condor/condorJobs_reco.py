@@ -9,7 +9,7 @@ import ROOT
 from utils import load_config, parse_args
 
 
-def main():
+def main() -> None:
 
     # ==========================
     # Load specified config file
