@@ -1,167 +1,226 @@
 #!/usr/bin/env python
 
-import os
 import sys
-import ROOT  
-import argparse
-import subprocess
+from math import ceil
+from os import fspath, system  # for execution at the end
+from pathlib import Path
 
-# ==========================
-# Parameters Initialisation
-# ==========================
-# Define lists of parameters for reconstruction
-thetaList_ = ["10", "20", "30", "40", "50", "60", "70", "80", "89"] 
-#thetaList_ = ["70", "80", "89"] 
-momentumList_ = ["1", "2", "5", "10", "20", "50", "100", "200"] 
-#momentumList_ = ["1", "10", "100"] 
-particleList_ = ["mu"]#,"e" ,"pi"]  
-#ResVDX_UV_ = ['0.001']
+import ROOT
+from utils import load_config, parse_args
 
-DetectorModelList_ = ["CLD_o3_v01"]  #  FCCee_o1_v04    CLD_o2_v05    CLD_o3_v01
-Nevts_ = "10000"  
 
-Nevt_per_job = "1000"  # Set the desired number of events per job
-N_jobs = int(int(Nevts_) / int(Nevt_per_job)) * len(particleList_) * len(thetaList_) * len(momentumList_)
-total_events = int(Nevts_)
-num_jobs = total_events // int(Nevt_per_job)
+def main() -> None:
 
-# ===========================
-# Directory Setup and Checks
-# ===========================
-# Define directories for input and output
-directory_jobs = f"CondorJobs/Rec_{particleList_[0]}_{DetectorModelList_[0]}"
-#setup = "/cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh" # nightlies
-setup = "/cvmfs/sw.hsf.org/key4hep/setup.sh"            # stable
-#InputDirectory = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
-InputDirectory = f"/eos/experiment/fcc/users/g/gasadows/TrackingPerformance/{DetectorModelList_[0]}/SIM/3T/"
-EosDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModelList_[0]}/REC/3T/"
+    # ==========================
+    # Load specified config file
+    # ==========================
 
-#steering_file = "CLDReconstruction.py"
-steering_file = "/afs/cern.ch/user/g/gasadows/CLDConfig/CLDConfig/CLDReconstruction_3T.py"
+    args = parse_args()
+    config = load_config(args.config)
 
-# Enable output checks
-check_output = True  # Set to True to enable checks, False to disable
-                     # It will check if the ouputs exist and contain correct number of events
-                     # if not it will send job to rerun reconstruction
+    # ==========================
+    # Check paths
+    # ==========================
 
-JobFlavour = "tomorrow"
-# Job flavours:
-#   espresso     = 20 minutes
-#   microcentury = 1 hour
-#   longlunch    = 2 hours
-#   workday      = 8 hours
-#   tomorrow     = 1 day
-#   testmatch    = 3 days
-#   nextweek     = 1 week
+    assert (
+        config.rec_steering_file.exists()
+    ), f"The file {config.rec_steering_file} does not exist"
+    assert (
+        config.detector_dir.exists()
+    ), f"The folder {config.detector_dir} does not exist"
 
-# Set default value if ResVDX_UV_ is not defined or empty
-try:
-    if not ResVDX_UV_:
-        ResVDX_UV_ = ['0.003']
-except NameError:
-    ResVDX_UV_ = ['0.003']
+    # ==========================
+    # Parameters Initialisation
+    # ==========================
 
-# Check if the directory exists and exit if it does
-if os.path.exists(directory_jobs):
-    print(f"Error: Directory '{directory_jobs}' already exists and should not be overwritten.")
-    sys.exit(1)
+    n_para_sets = (
+        len(config.detector_model_list)
+        * len(config.particle_list)
+        * len(config.theta_list)
+        * len(config.momentum_list)
+    )
+    # number of parallel jobs with same parameter combination/set
+    n_jobs_per_para_set = ceil(
+        config.N_EVTS / config.N_EVTS_PER_JOB
+    )  # Nevts is lower limit
+    # total number of jobs, can be printed for debugging/information
+    n_jobs = n_jobs_per_para_set * n_para_sets
 
-# Create output directories if they don't exist
-[os.makedirs(directory, exist_ok=True) for directory in [EosDir, directory_jobs]]
+    # ===========================
+    # Directory Setup and Checks
+    # ===========================
 
-# =======================
-# Simulation Job Creation 
-# =======================
-# Create all possible combinations
-import itertools
-list_of_combined_variables = itertools.product(thetaList_, momentumList_, particleList_, DetectorModelList_)
+    # Define directories for input and output
+    directory_jobs = (
+        config.rec_condor_dir
+        / f"{config.particle_list[0]}_{config.detector_model_list[0]}"
+    )
+    sim_eos_dir = config.data_dir / f"{config.detector_model_list[0]}" / "SIM"  # input
+    rec_eos_dir = config.data_dir / f"{config.detector_model_list[0]}" / "REC"  # output
 
-need_to_create_scripts = False
+    # Enable output checks
+    CHECK_OUTPUT = True  # Set to True to enable checks, False to disable
+    # It will check if the ouputs exist and contain correct number of events
+    # if not it will send job to rerun reconstruction
 
-for theta, momentum, part, dect in list_of_combined_variables:
-    for task_index in range(num_jobs):
+    # Check if the directory exists and exit if it does
+    if directory_jobs.exists():
+        print(
+            f"Error: Directory '{directory_jobs}' already exists and should not be overwritten."
+        )
+        sys.exit(1)
 
-        outputFileName = f"REC_{dect}"
-        outputFileName+= f"_{part}"
-        outputFileName+= f"_{theta}_deg"
-        outputFileName+= f"_{momentum}_GeV"
-        outputFileName+= f"_{Nevt_per_job}_evts"
-        outputFileName+= f"_{task_index}"
+    # Create output directories if they don't exist
+    rec_eos_dir.mkdir(parents=True, exist_ok=True)
+    directory_jobs.mkdir(parents=True, exist_ok=True)
 
-        inputFile= os.path.join(InputDirectory + f"/{part}", f"SIM_{dect}_{part}_{theta}_deg_{momentum}_GeV_{Nevt_per_job}_evts_{task_index}_edm4hep.root")  
-        #inputFile= os.path.join(InputDirectory + f"/{part}", f"SIM_{dect}_{part}_{theta}_deg_{momentum}_GeV_{Nevt_per_job}_evts_edm4hep.root")  
-        #input_file= os.path.join(InputDirectory, "SIMTest_" + dect + "_" + part + "_" + theta + "_deg_" + momentum + "_GeV_" + Nevts_ + "_evts.slcio")
+    # =======================
+    # Reconstruction Job Creation
+    # =======================
 
-        # Check if the input file exists
-        if not os.path.exists(inputFile):
-            print(f"Error: Input file {inputFile} does not exist. Skipping job.")
-            continue 
-        # Check if the output file already exists and has correct Nb of events
-        output_dir = os.path.join(EosDir, part); os.makedirs(output_dir, exist_ok=True)
-        output_file = output_dir +"/"+ outputFileName + "_edm4hep.root"
-        if check_output and os.path.exists(output_file):
-            root_file = ROOT.TFile(output_file, "READ")
-            events_tree = root_file.Get("events")
-            if events_tree and events_tree.GetEntries() == int(Nevt_per_job):
-                root_file.Close()
+    # Create all possible combinations
+    import itertools
+
+    iter_of_combined_variables = itertools.product(
+        config.theta_list,
+        config.momentum_list,
+        config.particle_list,
+        config.detector_model_list,
+    )
+
+    NEED_TO_CREATE_SCRIPTS = False
+
+    for theta, momentum, part, dect in iter_of_combined_variables:
+        for task_index in range(n_jobs_per_para_set):
+
+            output_file_name_parts = [
+                f"REC_{dect}",
+                f"{part}",
+                f"{theta}_deg",
+                f"{momentum}_GeV",
+                f"{config.N_EVTS_PER_JOB}_evts",
+                f"{task_index}",
+            ]
+            output_file_name = "_".join(output_file_name_parts)
+
+            input_file_name_parts = [
+                f"SIM_{dect}",
+                f"{part}",
+                f"{theta}_deg",
+                f"{momentum}_GeV",
+                f"{config.N_EVTS_PER_JOB}_evts",
+                f"{task_index}",
+            ]
+            if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE:
+                input_file_name_parts.append("edm4hep")
+                input_file_path = Path("_".join(input_file_name_parts)).with_suffix(
+                    ".root"
+                )
+            else:
+                input_file_path = Path("_".join(input_file_name_parts)).with_suffix(
+                    ".edm4hep.root"
+                )
+            input_file = sim_eos_dir / part / input_file_path
+
+            # Check if the input file exists
+            if not input_file.exists():
+                print(f"Error: Input file {input_file} does not exist. Skipping job.")
                 continue
-            root_file.Close()
-        need_to_create_scripts = True
+            # Check if the output file already exists and has correct Nb of events
+            output_dir = rec_eos_dir / part
+            output_dir.mkdir(parents=True, exist_ok=True)
+            if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE:
+                output_file = (
+                    output_dir / (output_file_name + "_edm4hep")
+                ).with_suffix(".root")
+            else:
+                output_file = (output_dir / output_file_name).with_suffix(
+                    ".edm4hep.root"
+                )
 
-        # Create aida output Dir
-        output_dir_aida = os.path.join(output_dir, "aida_outputs"); os.makedirs(output_dir_aida, exist_ok=True)
+            # FIXME: Issue #4
+            if CHECK_OUTPUT and output_file.exists():
+                root_file = ROOT.TFile(fspath(output_file), "READ")
+                events_tree = root_file.Get("events")
+                if events_tree and events_tree.GetEntries() == config.N_EVTS_PER_JOB:
+                    root_file.Close()
+                    continue
+                root_file.Close()
+            NEED_TO_CREATE_SCRIPTS = True
 
-        arguments = (
-            #f" --GeoSvc.detectors=/afs/cern.ch/work/g/gasadows/k4geo/FCCee/CLD/compact/{DetectorModelList_[0]}_3T/{DetectorModelList_[0]}.xml"+
-            f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{DetectorModelList_[0]}/{DetectorModelList_[0]}.xml"+
-            " --inputFiles " + inputFile + " --outputBasename  " + outputFileName+ 
-            f" --VXDDigitiserResUV={ResVDX_UV_[0]}" + 
-            " --trackingOnly" + 
-            " -n " + Nevt_per_job
-        )
-        command = f"k4run {steering_file} " + arguments + " > /dev/null"
+            # Create aida output Dir
+            output_dir_aida = output_dir / "aida_outputs"
+            output_dir_aida.mkdir(exist_ok=True)
 
-        # Write bash script for job execution
-        bash_script = (
-            "#!/bin/bash \n"
-            f"source {setup} \n"
-            "git clone https://github.com/gaswk/CLDConfig.git \n"
-            "cd " + "CLDConfig/CLDConfig" + "\n"
-            f"{command} \n"
-            f"xrdcp {outputFileName}_edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
-            f"xrdcp {outputFileName}_aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
-        )
-        bash_file = directory_jobs + f"/bash_script_{dect}_{part}_{momentum}_{theta}_{task_index}.sh"
-        with open(bash_file, "w") as file:
-            file.write(bash_script)
-            file.close()
+            arguments = (
+                f" --GeoSvc.detectors=$K4GEO/FCCee/CLD/compact/{config.detector_model_list[0]}/{config.detector_model_list[0]}.xml"
+                + " --inputFiles "
+                + fspath(input_file)
+                + " --outputBasename  "
+                + fspath(output_file_name)
+                + " --trackingOnly"
+                + " -n "
+                + str(config.N_EVTS_PER_JOB)
+            )
+            command = f"k4run {config.rec_steering_file} " + arguments + " > /dev/null"
 
-if not need_to_create_scripts:
-    print("All output files are correct.")
-    sys.exit(0)
+            # Write bash script for job execution
+            bash_script = (
+                "#!/bin/bash \n"
+                f"source {config.setup} \n"
+                "git clone https://github.com/key4hep/CLDConfig.git \n"  # FIXME: see issues
+                "cd "
+                + "CLDConfig/CLDConfig"  # FIXME: CLD should not be hardcoded
+                + "\n"
+                f"{command} \n"
+                f"xrdcp {output_file_name}{'_' if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE else '.'}edm4hep.root  root://eosuser.cern.ch/{output_dir} \n"
+                f"xrdcp {output_file_name}{'_' if config.EDM4HEP_SUFFIX_WITH_UNDERSCORE else '.'}aida.root  root://eosuser.cern.ch/{output_dir_aida} \n"
+            )
+            bash_file_name_parts = [
+                "bash_script",
+                dect,
+                part,
+                f"{theta}_deg",
+                f"{momentum}_GeV",
+                str(task_index),
+            ]
+            bash_file_path = (
+                directory_jobs / "_".join(bash_file_name_parts)
+            ).with_suffix(".sh")
 
-# ============================
-# Condor Submission Script
-# ============================
-# Write the condor submission script
-condor_script = (
-    "executable = $(filename) \n"
-    "arguments = $(ClusterId) $(ProcId) \n"
-    "output = output.$(ClusterId).$(ProcId).out \n"
-    "error = error.$(ClusterId).$(ProcId).err \n"
-    "log = log.$(ClusterId).log \n"
-    f"+JobFlavour = \"{JobFlavour}\" \n"  
-    "queue filename matching files *.sh \n"
-)
-condor_file = directory_jobs + "/condor_script.sub"
-with open(condor_file, "w") as file2:
-    file2.write(condor_script)
-    file2.close()
+            with open(bash_file_path, "w", encoding="utf-8") as bash_file:
+                bash_file.write(bash_script)
+                bash_file.close()
 
-# ====================
-# Submit Job to Condor
-# ====================
-os.system("cd "+ directory_jobs + "; condor_submit condor_script.sub")
+    if not NEED_TO_CREATE_SCRIPTS:
+        print("All output files are correct.")
+        sys.exit(0)
+
+    # ============================
+    # Condor Submission Script
+    # ============================
+    # Write the condor submission script
+    condor_script = (
+        "executable = $(filename) \n"
+        "arguments = $(ClusterId) $(ProcId) \n"
+        "output = output.$(ClusterId).$(ProcId).out \n"
+        "error = error.$(ClusterId).$(ProcId).err \n"
+        "log = log.$(ClusterId).log \n"
+        f'+JobFlavour = "{config.JOB_FLAVOR}" \n'
+        "queue filename matching files *.sh \n"
+    )
+    condor_file_path = directory_jobs / "condor_script.sub"
+    with open(condor_file_path, "w", encoding="utf-8") as condor_file:
+        condor_file.write(condor_script)
+        condor_file.close()
+
+    # ====================
+    # Submit Job to Condor
+    # ====================
+    system(
+        "cd " + fspath(directory_jobs) + "; condor_submit condor_script.sub"
+    )  # FIXME: use subprocess instead?
 
 
-
+if __name__ == "__main__":
+    main()
